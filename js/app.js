@@ -1,6 +1,6 @@
 /**
  * Timetable Generator App - Enhanced for Students
- * Cute Design, Reusable Activities, Multi-day Apply & Online Ready
+ * Cute Design, Exact Photo Layout, Reusable Activities & Clean Export
  */
 
 // Application State
@@ -8,10 +8,10 @@ let state = {
   title: "THỜI GIAN BIỂU",
   studentName: "Trịnh Xuân Khang",
   subtitle: "Kế hoạch sinh hoạt và học tập",
-  mascotTheme: "boys", // 'boys', 'girls', 'mixed', 'none'
-  layoutMode: "2rows", // '2rows', '7cols', '5cols', 'free'
+  mascotTheme: "boys",
+  layoutMode: "photo", // 'photo', '7cols', '5cols', 'free'
   fontTheme: "nunito",
-  themePalette: "rainbow", // 'rainbow', 'sky', 'candy', 'mint'
+  themePalette: "rainbow",
   cards: []
 };
 
@@ -31,13 +31,11 @@ const COMMON_ACTIVITIES_BANK = [
   { time: "21h30 trở đi", text: "Nghỉ ngơi và đi ngủ", icon: "😴", section: "Tối:" }
 ];
 
-// Currently editing pointers
 let editingSlotInfo = null; // { cardId, slotId }
 let editingCardId = null;
 let currentSelectedIcon = '🕒';
 let isIconManuallyChosen = false;
 
-// Predefined color palette
 const PRESET_COLORS = [
   '#2563eb', // Blue (T2)
   '#16a34a', // Green (T3)
@@ -50,7 +48,6 @@ const PRESET_COLORS = [
   '#475569'  // Slate
 ];
 
-// Initialize application
 function initApp() {
   loadSavedState();
   buildIconPickerGrid();
@@ -59,12 +56,12 @@ function initApp() {
   setupEventListeners();
 }
 
-// Load state from localStorage or load default preset
 function loadSavedState() {
-  const saved = localStorage.getItem('thoi_gian_bieu_state');
+  const saved = localStorage.getItem('thoi_gian_bieu_state_v2');
   if (saved) {
     try {
       state = JSON.parse(saved);
+      if (!state.layoutMode || state.layoutMode === '2rows') state.layoutMode = 'photo';
       if (!state.themePalette) state.themePalette = 'rainbow';
       return;
     } catch (e) {
@@ -74,12 +71,10 @@ function loadSavedState() {
   loadPreset('original');
 }
 
-// Save state to localStorage
 function saveState() {
-  localStorage.setItem('thoi_gian_bieu_state', JSON.stringify(state));
+  localStorage.setItem('thoi_gian_bieu_state_v2', JSON.stringify(state));
 }
 
-// Load a specific preset
 function loadPreset(name) {
   if (name === 'original') {
     state = JSON.parse(JSON.stringify(window.TimetablePresets.PRESET_ORIGINAL));
@@ -91,12 +86,10 @@ function loadPreset(name) {
   if (!state.themePalette) state.themePalette = 'rainbow';
   saveState();
   renderApp();
-  showToast("Đã tải dữ liệu mẫu thành công!");
+  showToast("Đã tải dữ liệu mẫu chuẩn ảnh thành công! 🌟");
 }
 
-// Render the entire sheet and UI
 function renderApp() {
-  // Sync form inputs in toolbar
   const studentNameInput = document.getElementById('input-student-name');
   if (studentNameInput) studentNameInput.value = state.studentName;
 
@@ -109,31 +102,24 @@ function renderApp() {
   const themeSelect = document.getElementById('select-theme');
   if (themeSelect) themeSelect.value = state.themePalette || 'rainbow';
 
-  // Apply theme class
   const sheet = document.getElementById('timetable-sheet');
   if (sheet) {
     sheet.className = `timetable-sheet theme-${state.themePalette || 'rainbow'}`;
   }
 
-  // Render header
   renderHeader();
-
-  // Render timetable grid
   renderGrid();
 }
 
-// Render Header Banner and Mascots
 function renderHeader() {
   const mascotLeft = document.getElementById('mascot-left');
   const mascotRight = document.getElementById('mascot-right');
   const bannerTitle = document.getElementById('banner-title-text');
   const bannerSubtitle = document.getElementById('banner-subtitle-text');
 
-  // Set titles
   bannerTitle.innerHTML = `${state.title} - <span class="student-name-highlight">${state.studentName}</span>`;
   bannerSubtitle.textContent = state.subtitle || '';
 
-  // Mascot graphics
   if (state.mascotTheme === 'boys') {
     mascotLeft.innerHTML = `<img class="mascot-img" src="assets/boy-left.svg" alt="Boy Student" />`;
     mascotRight.innerHTML = `<img class="mascot-img" src="assets/boy-right.svg" alt="Boy Reading" />`;
@@ -155,7 +141,6 @@ function renderHeader() {
   }
 }
 
-// Render Timetable Grid Cards
 function renderGrid() {
   const gridContainer = document.getElementById('timetable-grid');
   gridContainer.className = `grid-container grid-${state.layoutMode}`;
@@ -166,7 +151,20 @@ function renderGrid() {
     cardEl.className = 'time-card';
     cardEl.dataset.cardId = card.id;
 
-    // Card Action buttons (delete, copy, edit color)
+    // Apply color border matching the pill color (exact match to photo!)
+    cardEl.style.borderColor = card.color || '#cbd5e1';
+
+    // Apply exact grid placement if photo layout mode
+    if (state.layoutMode === 'photo') {
+      if (card.gridCol) cardEl.style.gridColumn = card.gridCol;
+      if (card.gridSpan) cardEl.style.gridRow = `1 / span ${card.gridSpan}`;
+      else if (card.gridRow) cardEl.style.gridRow = card.gridRow;
+    } else {
+      cardEl.style.gridColumn = '';
+      cardEl.style.gridRow = '';
+    }
+
+    // Card Action buttons (hidden in export/print)
     const actionsEl = document.createElement('div');
     actionsEl.className = 'card-actions no-print';
     actionsEl.innerHTML = `
@@ -221,7 +219,7 @@ function renderGrid() {
 
     cardEl.appendChild(slotsContainer);
 
-    // Bottom "+ Thêm hoạt động" button
+    // Bottom "+ Thêm hoạt động" button (strictly hidden in print/export!)
     const addSlotBtn = document.createElement('button');
     addSlotBtn.className = 'add-slot-btn no-print';
     addSlotBtn.innerHTML = `<span>+ Thêm hoạt động</span>`;
@@ -232,10 +230,7 @@ function renderGrid() {
   });
 }
 
-// ==========================================
-// REUSABLE ACTIVITY BANK & MULTI-DAY APPLY
-// ==========================================
-
+// Reusable Activity Bank
 function buildQuickActivityBank() {
   const container = document.getElementById('quick-bank-chips');
   if (!container) return;
@@ -288,17 +283,13 @@ function setMultiDaySelection(mode) {
       const card = state.cards.find(c => c.id === cb.value);
       if (!card) return;
       const title = card.title.toLowerCase();
-      // Match Thứ 2 - Thứ 6
       const isWeekday = title.includes('hai') || title.includes('ba') || title.includes('tư') || title.includes('năm') || title.includes('sáu') || title.includes('2') || title.includes('3') || title.includes('4') || title.includes('5') || title.includes('6');
       cb.checked = isWeekday;
     });
   }
 }
 
-// ==========================================
-// SLOT & CARD CRUD OPERATIONS
-// ==========================================
-
+// Slot Management
 function openAddSlotModal(cardId) {
   editingSlotInfo = { cardId, slotId: null };
   isIconManuallyChosen = false;
@@ -323,7 +314,7 @@ function openEditSlotModal(cardId, slotId) {
   if (!slot) return;
 
   editingSlotInfo = { cardId, slotId };
-  isIconManuallyChosen = true; // Preserve user's icon
+  isIconManuallyChosen = true;
   currentSelectedIcon = slot.icon || '🕒';
 
   document.getElementById('modal-slot-title').textContent = 'Sửa Hoạt Động & Nhân Bản Lịch';
@@ -351,14 +342,12 @@ function saveSlot() {
     return;
   }
 
-  // Check which days are selected for multi-day apply
   const selectedDayIds = Array.from(document.querySelectorAll('input[name="apply_days"]:checked')).map(cb => cb.value);
   if (selectedDayIds.length === 0) {
     selectedDayIds.push(cardId);
   }
 
   if (slotId && selectedDayIds.length === 1 && selectedDayIds[0] === cardId) {
-    // Standard single edit
     const card = state.cards.find(c => c.id === cardId);
     if (card) {
       const slot = card.slots.find(s => s.id === slotId);
@@ -371,13 +360,11 @@ function saveSlot() {
     }
     showToast('Đã cập nhật hoạt động!');
   } else {
-    // Adding new or applying to multiple days!
     selectedDayIds.forEach(targetId => {
       const card = state.cards.find(c => c.id === targetId);
       if (!card) return;
 
       if (slotId && targetId === cardId) {
-        // Update current
         const slot = card.slots.find(s => s.id === slotId);
         if (slot) {
           slot.time = time;
@@ -386,7 +373,6 @@ function saveSlot() {
           slot.icon = icon;
         }
       } else {
-        // Add duplicate slot to this day
         const newSlot = {
           id: 's_' + Date.now() + Math.random().toString(36).substr(2, 4),
           time,
@@ -437,10 +423,7 @@ function setQuickTime(val) {
   document.getElementById('slot-time-input').value = val;
 }
 
-// ==========================================
-// CARD DUPLICATION (SAO CHÉP TOÀN BỘ NGÀY)
-// ==========================================
-
+// Card Duplication
 let duplicatingSourceCardId = null;
 
 function openDuplicateCardModal(cardId) {
@@ -453,7 +436,7 @@ function openDuplicateCardModal(cardId) {
   container.innerHTML = '';
 
   state.cards.forEach(card => {
-    if (card.id === cardId) return; // Don't duplicate to self
+    if (card.id === cardId) return;
     const label = document.createElement('label');
     label.className = 'day-check-label';
     label.innerHTML = `
@@ -483,7 +466,6 @@ function executeDuplicateCard() {
     const targetCard = state.cards.find(c => c.id === targetId);
     if (!targetCard) return;
 
-    // Clone slots
     const clonedSlots = srcCard.slots.map(s => ({
       ...s,
       id: 's_' + Date.now() + Math.random().toString(36).substr(2, 4)
@@ -502,7 +484,7 @@ function executeDuplicateCard() {
   showToast(`Đã sao chép lịch sang ${targets.length} ngày thành công! 📋`);
 }
 
-// Card Management (Add / Edit / Delete Card)
+// Card Management
 function openAddCardModal() {
   document.getElementById('card-modal-title').textContent = 'Thêm Cột / Ngày Mới';
   document.getElementById('card-title-input').value = 'THỨ ' + (state.cards.length + 1);
@@ -569,7 +551,6 @@ function deleteCard(cardId) {
   showToast('Đã xóa cột!');
 }
 
-// Edit Header Title & Student Name Modal
 function openHeaderEditModal() {
   document.getElementById('header-title-input').value = state.title;
   document.getElementById('header-student-input').value = state.studentName;
@@ -588,15 +569,10 @@ function saveHeaderEdit() {
   showToast('Đã cập nhật tiêu đề!');
 }
 
-// Quick Icon Picker Popover
 function openQuickIconPicker(cardId, slotId) {
   openEditSlotModal(cardId, slotId);
   document.getElementById('icon-picker-box').scrollIntoView({ behavior: 'smooth' });
 }
-
-// ==========================================
-// SMART ICON AUTO-SELECTION & PICKER
-// ==========================================
 
 function handleSlotTextInput(text) {
   if (isIconManuallyChosen) return;
@@ -649,7 +625,6 @@ function buildIconPickerGrid() {
     container.appendChild(grid);
   });
 
-  // Build color swatches
   const colorContainer = document.getElementById('color-swatches-container');
   if (colorContainer) {
     colorContainer.innerHTML = '';
@@ -663,10 +638,6 @@ function buildIconPickerGrid() {
     });
   }
 }
-
-// ==========================================
-// MODAL CONTROLS & HELPERS
-// ==========================================
 
 function openModal(id) {
   const modal = document.getElementById(id);
@@ -692,14 +663,19 @@ function showToast(msg) {
 }
 
 // ==========================================
-// EXPORT TO PDF & PRINT
+// EXPORT TO PDF & PRINT (STRICT CLEAN OUTPUT)
 // ==========================================
 
 function exportPDF() {
   const sheetElement = document.getElementById('timetable-sheet');
-  if (!sheetElement) return;
+  const wrapper = document.querySelector('.timetable-sheet-wrapper');
+  if (!sheetElement || !wrapper) return;
 
-  showToast('Đang tạo file PDF chất lượng cao, xin chờ giây lát...');
+  // Add clean class to hide all functional buttons during export
+  wrapper.classList.add('exporting-clean-pdf');
+  document.body.classList.add('exporting-clean-pdf');
+
+  showToast('Đang tạo file PDF tinh gọn (chỉ hiển thị nội dung)...');
 
   const cleanName = (state.studentName || 'HocSinh').replace(/[^a-zA-Z0-9_\u00C0-\u1EF9]/g, '_');
   const filename = `Thoi_Gian_Bieu_${cleanName}.pdf`;
@@ -713,7 +689,13 @@ function exportPDF() {
       useCORS: true,
       logging: false,
       scrollY: 0,
-      scrollX: 0
+      scrollX: 0,
+      ignoreElements: (el) => {
+        return el.classList.contains('no-print') ||
+               el.classList.contains('add-slot-btn') ||
+               el.classList.contains('card-actions') ||
+               el.classList.contains('slot-controls');
+      }
     },
     jsPDF: {
       unit: 'mm',
@@ -723,8 +705,12 @@ function exportPDF() {
   };
 
   html2pdf().set(opt).from(sheetElement).save().then(() => {
+    wrapper.classList.remove('exporting-clean-pdf');
+    document.body.classList.remove('exporting-clean-pdf');
     showToast('Tải file PDF thành công! 🎉');
   }).catch(err => {
+    wrapper.classList.remove('exporting-clean-pdf');
+    document.body.classList.remove('exporting-clean-pdf');
     console.error("Lỗi xuất PDF:", err);
     alert('Không thể tạo PDF tự động. Bạn có thể sử dụng nút "In Thời Gian Biểu" rồi chọn "Lưu dưới dạng PDF"!');
   });
@@ -734,12 +720,7 @@ function printTimetable() {
   window.print();
 }
 
-// ==========================================
-// EVENT LISTENERS & SHORTCUTS
-// ==========================================
-
 function setupEventListeners() {
-  // Live student name change from toolbar
   const studentNameInput = document.getElementById('input-student-name');
   if (studentNameInput) {
     studentNameInput.addEventListener('input', (e) => {
@@ -749,7 +730,6 @@ function setupEventListeners() {
     });
   }
 
-  // Layout mode switcher
   const layoutSelect = document.getElementById('select-layout');
   if (layoutSelect) {
     layoutSelect.addEventListener('change', (e) => {
@@ -759,7 +739,6 @@ function setupEventListeners() {
     });
   }
 
-  // Mascot switcher
   const mascotSelect = document.getElementById('select-mascot');
   if (mascotSelect) {
     mascotSelect.addEventListener('change', (e) => {
@@ -769,7 +748,6 @@ function setupEventListeners() {
     });
   }
 
-  // Theme palette switcher
   const themeSelect = document.getElementById('select-theme');
   if (themeSelect) {
     themeSelect.addEventListener('change', (e) => {
@@ -779,7 +757,6 @@ function setupEventListeners() {
     });
   }
 
-  // Text input for activity auto icon trigger
   const slotTextInput = document.getElementById('slot-text-input');
   if (slotTextInput) {
     slotTextInput.addEventListener('input', (e) => {
@@ -787,7 +764,6 @@ function setupEventListeners() {
     });
   }
 
-  // Close modal when clicking outside
   document.querySelectorAll('.modal-backdrop').forEach(modal => {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
@@ -796,7 +772,6 @@ function setupEventListeners() {
     });
   });
 
-  // ESC key closes modals
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       document.querySelectorAll('.modal-backdrop.active').forEach(m => m.classList.remove('active'));
@@ -804,5 +779,4 @@ function setupEventListeners() {
   });
 }
 
-// Auto init on DOM ready
 document.addEventListener('DOMContentLoaded', initApp);

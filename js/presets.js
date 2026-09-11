@@ -1,104 +1,92 @@
 /**
  * Timetable Presets
+ * Exactly matching the original user image layout & alternate presets
  */
 
 const PRESET_ORIGINAL = {
   title: "THỜI GIAN BIỂU",
   studentName: "Trịnh Xuân Khang",
   subtitle: "Kế hoạch sinh hoạt và học tập",
-  mascotTheme: "boys", // 'boys', 'girls', 'mixed', 'none'
-  layoutMode: "2rows", // '2rows', '7cols', 'free'
-  themeColor: "sky",
+  mascotTheme: "boys",
+  layoutMode: "photo", // 'photo' (Exact replica: Col 1 & 5 tall, Cols 2-4 split 2 cards)
+  themePalette: "rainbow",
   cards: [
-    // --- Hàng trên (5 ngày đầu tuần chính khóa) ---
+    // --- CỘT 1: THỨ HAI (Cao toàn bộ cột, gồm Sáng, Chiều, Tối) ---
     {
-      id: "col-mon",
+      id: "card-mon",
       title: "THỨ HAI",
-      color: "#2563eb", // Xanh dương
+      color: "#2563eb",
+      gridCol: 1,
+      gridSpan: 2,
       slots: [
         { id: "m1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
         { id: "m2", time: "13h30 - 14h30", text: "Ngủ trưa", icon: "🛏️", section: "Chiều:" },
-        { id: "m3", time: "14h30 - 15h30", text: "Làm bài tập về nhà", icon: "✏️" },
+        { id: "m3", time: "14h30 - 15h30", text: "Làm bài tập về nhà", icon: "📝" },
         { id: "m4", time: "15h30 - 16h30", text: "Tập gym / thể thao", icon: "🏋️" },
         { id: "m5", time: "16h30 - 16h45", text: "Tắm rửa, chuẩn bị nhanh", icon: "🚿" },
-        { id: "m6", time: "16h45", text: "Di chuyển đi học", icon: "🚌" }
+        { id: "m6", time: "16h45", text: "Di chuyển đi học", icon: "🚌" },
+        { id: "m7", time: "17h00 - 19h00", text: "Học thêm tiếng Anh (Cô Hương)", icon: "🇬🇧", section: "Tối:" },
+        { id: "m8", time: "19h00 - 20h00", text: "Về nhà, ăn tối", icon: "🍽️" },
+        { id: "m9", time: "20h00 - 21h30", text: "Soạn sách vở, quần áo, hoàn thành BTVN", icon: "🎒" },
+        { id: "m10", time: "21h30 - 22h00", text: "Đọc sách/truyện và đi ngủ", icon: "📖" }
       ]
     },
+
+    // --- CỘT 2 - TRÊN: THỨ BA ---
     {
-      id: "col-tue",
+      id: "card-tue",
       title: "THỨ BA",
-      color: "#16a34a", // Xanh lá
+      color: "#16a34a",
+      gridCol: 2,
+      gridRow: 1,
       slots: [
         { id: "t1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
         { id: "t2", time: "13h30 - 14h30", text: "Ngủ trưa", icon: "🛏️", section: "Chiều:" },
-        { id: "t3", time: "14h30 - 15h30", text: "Làm bài tập về nhà", icon: "✏️" },
+        { id: "t3", time: "14h30 - 15h30", text: "Làm bài tập về nhà", icon: "📝" },
         { id: "t4", time: "15h30 - 16h30", text: "Tập gym / thể thao", icon: "🏋️" },
         { id: "t5", time: "16h30 - 18h30", text: "Tắm rửa, nghỉ ngơi thoải mái", icon: "🛋️" }
       ]
     },
-    {
-      id: "col-wed",
-      title: "THỨ TƯ",
-      color: "#f59e0b", // Vàng cam
-      slots: [
-        { id: "w1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
-        { id: "w2", time: "13h30 - 14h30", text: "Ngủ trưa", icon: "🛏️", section: "Chiều:" },
-        { id: "w3", time: "14h30 - 15h30", text: "Làm bài tập về nhà", icon: "✏️" },
-        { id: "w4", time: "15h30 - 16h30", text: "Tập gym / chuẩn bị", icon: "🏋️" },
-        { id: "w5", time: "17h00", text: "Di chuyển đi học", icon: "🚌" }
-      ]
-    },
-    {
-      id: "col-thu",
-      title: "THỨ NĂM",
-      color: "#dc2626", // Đỏ cờ
-      slots: [
-        { id: "th1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
-        { id: "th2", time: "13h30 - 14h30", text: "Ngủ trưa", icon: "🛏️", section: "Chiều:" },
-        { id: "th3", time: "14h30 - 15h30", text: "Làm bài tập", icon: "✏️" },
-        { id: "th4", time: "15h30 - 16h30", text: "Tập gym / thể thao", icon: "🏋️" },
-        { id: "th5", time: "16h30 - 16h45", text: "Tắm rửa, chuẩn bị nhanh", icon: "🚿" },
-        { id: "th6", time: "16h45", text: "Di chuyển đi học", icon: "🚌" }
-      ]
-    },
-    {
-      id: "col-fri-top",
-      title: "THỨ SÁU",
-      color: "#ea580c", // Cam đậm
-      slots: [
-        { id: "f1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" }
-      ]
-    },
 
-    // --- Hàng dưới (Tối, Thứ Sáu tiếp, Thứ Bảy, Chủ Nhật, Tối CN) ---
+    // --- CỘT 2 - DƯỚI: THỨ SÁU ---
     {
-      id: "col-mon-night",
-      title: "LỊCH TỐI (T2)",
-      color: "#0284c7",
-      isCustomPill: true,
-      slots: [
-        { id: "mn1", time: "17h00 - 19h00", text: "Học thêm tiếng Anh (Cô Hương)", icon: "🇬🇧", section: "Tối:" },
-        { id: "mn2", time: "19h00 - 20h00", text: "Về nhà, ăn tối", icon: "🍽️" },
-        { id: "mn3", time: "20h00 - 21h30", text: "Soạn sách vở, quần áo, hoàn thành BTVN", icon: "🎒" },
-        { id: "mn4", time: "21h30 - 22h00", text: "Đọc sách/truyện và đi ngủ", icon: "📖" }
-      ]
-    },
-    {
-      id: "col-fri-bot",
+      id: "card-fri-bot",
       title: "THỨ SÁU",
       color: "#ea580c",
+      gridCol: 2,
+      gridRow: 2,
       slots: [
         { id: "fb1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
-        { id: "fb2", time: "13h30 - 19h30", text: "Ngủ trưa / Nghỉ ngơi", icon: "🛏️", section: "Chiều & Tối:" },
+        { id: "fb2", time: "13h30 - 19h30", text: "Ngủ trưa", icon: "🛏️", section: "Chiều:" },
         { id: "fb3", time: "19h30 - 20h30", text: "Về nhà, ăn tối", icon: "🍽️" },
         { id: "fb4", time: "20h30 - 21h30", text: "Kiểm tra lại BTVN, soạn sách vở và chuẩn bị quần áo cho ngày mai", icon: "🎒" },
         { id: "fb5", time: "21h30 trở đi", text: "Nghỉ ngơi và đi ngủ", icon: "😴" }
       ]
     },
+
+    // --- CỘT 3 - TRÊN: THỨ TƯ ---
     {
-      id: "col-sat",
+      id: "card-wed",
+      title: "THỨ TƯ",
+      color: "#f59e0b",
+      gridCol: 3,
+      gridRow: 1,
+      slots: [
+        { id: "w1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
+        { id: "w2", time: "13h30 - 14h30", text: "Ngủ trưa", icon: "🛏️", section: "Chiều:" },
+        { id: "w3", time: "14h30 - 15h30", text: "Làm bài tập về nhà", icon: "📝" },
+        { id: "w4", time: "15h30 - 16h30", text: "Tập gym / chuẩn bị", icon: "🏋️" },
+        { id: "w5", time: "17h00", text: "Di chuyển đi học", icon: "🚌" }
+      ]
+    },
+
+    // --- CỘT 3 - DƯỚI: THỨ BẢY ---
+    {
+      id: "card-sat",
       title: "THỨ BẢY",
-      color: "#7c3aed", // Tím
+      color: "#7c3aed",
+      gridCol: 3,
+      gridRow: 2,
       slots: [
         { id: "s1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
         { id: "s2", time: "13h15 - 15h00", text: "Đến trường học", icon: "🚌", section: "Chiều:" },
@@ -106,10 +94,31 @@ const PRESET_ORIGINAL = {
         { id: "s4", time: "17h00 - 18h00", text: "Tắm rửa, nghỉ ngơi", icon: "🎵" }
       ]
     },
+
+    // --- CỘT 4 - TRÊN: THỨ NĂM ---
     {
-      id: "col-sun",
+      id: "card-thu",
+      title: "THỨ NĂM",
+      color: "#dc2626",
+      gridCol: 4,
+      gridRow: 1,
+      slots: [
+        { id: "th1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
+        { id: "th2", time: "13h30 - 14h30", text: "Ngủ trưa", icon: "🛏️", section: "Chiều:" },
+        { id: "th3", time: "14h30 - 15h30", text: "Làm bài tập", icon: "📝" },
+        { id: "th4", time: "15h30 - 16h30", text: "Tập gym / thể thao", icon: "🏋️" },
+        { id: "th5", time: "16h30 - 16h45", text: "Tắm rửa, chuẩn bị nhanh", icon: "🚿" },
+        { id: "th6", time: "16h45", text: "Di chuyển đi học", icon: "🚌" }
+      ]
+    },
+
+    // --- CỘT 4 - DƯỚI: CHỦ NHẬT ---
+    {
+      id: "card-sun",
       title: "CHỦ NHẬT",
-      color: "#0d9488", // Xanh mòng két
+      color: "#0d9488",
+      gridCol: 4,
+      gridRow: 2,
       slots: [
         { id: "sn1", time: "Sáng (07h30 - 11h50)", text: "Học thêm Toán Trường Anh", icon: "📐" },
         { id: "sn2", time: "18h00 - 20h00", text: "Học thêm", icon: "📚" },
@@ -117,15 +126,19 @@ const PRESET_ORIGINAL = {
         { id: "sn4", time: "20h00 trở đi", text: "Về nhà, ăn tối nghỉ ngơi", icon: "🍽️" }
       ]
     },
+
+    // --- CỘT 5: THỨ SÁU (Cao toàn bộ cột) ---
     {
-      id: "col-sun-night",
-      title: "LỊCH TỐI (CN)",
-      color: "#0d9488",
-      isCustomPill: true,
+      id: "card-fri-tall",
+      title: "THỨ SÁU",
+      color: "#ea580c",
+      gridCol: 5,
+      gridSpan: 2,
       slots: [
-        { id: "snn1", time: "18h00 - 20h00", text: "Ăn tối và nghỉ ngơi", icon: "🍽️", section: "Tối:" },
-        { id: "snn2", time: "20h00 - 21h00", text: "Chuẩn bị sách vở, quần áo cho thứ 2 đi học", icon: "🎒" },
-        { id: "snn3", time: "21h00 trở đi", text: "Nghỉ ngơi, đi ngủ", icon: "🎵" }
+        { id: "f1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
+        { id: "f2", time: "18h00 - 20h00", text: "Ăn tối và nghỉ ngơi", icon: "🍽️", section: "Tối:" },
+        { id: "f3", time: "20h00 - 21h00", text: "Chuẩn bị sách vở, quần áo cho thứ 2 đi học", icon: "🎒" },
+        { id: "f4", time: "21h00 trở đi", text: "Nghỉ ngơi, đi ngủ", icon: "🎵" }
       ]
     }
   ]
@@ -137,7 +150,7 @@ const PRESET_STANDARD_7DAYS = {
   subtitle: "Kế hoạch tuần từ Thứ Hai đến Chủ Nhật",
   mascotTheme: "boys",
   layoutMode: "7cols",
-  themeColor: "sky",
+  themePalette: "rainbow",
   cards: [
     {
       id: "col-std-mon",
@@ -188,7 +201,7 @@ const PRESET_STANDARD_7DAYS = {
       slots: [
         { id: "sth1", time: "07h30 - 11h30", text: "Học chính tại trường", icon: "🏫" },
         { id: "sth2", time: "11h30 - 13h30", text: "Ăn trưa & Ngủ trưa", icon: "🛏️" },
-        { id: "sth3", time: "14h00 - 16h30", text: "Làm bài tập về nhà", icon: "✏️" },
+        { id: "sth3", time: "14h00 - 16h30", text: "Làm bài tập về nhà", icon: "📝" },
         { id: "sth4", time: "16h30 - 17h30", text: "Chơi cầu lông", icon: "🏸" },
         { id: "sth5", time: "18h30 - 19h30", text: "Ăn tối cùng gia đình", icon: "🍽️" },
         { id: "sth6", time: "19h30 - 21h00", text: "Học bài mới", icon: "📚" },
@@ -246,7 +259,7 @@ const PRESET_SCHOOL_5DAYS = {
   subtitle: "Lịch học bán trú & Tự học tại nhà (Thứ 2 - Thứ 6)",
   mascotTheme: "boys",
   layoutMode: "5cols",
-  themeColor: "sky",
+  themePalette: "rainbow",
   cards: PRESET_STANDARD_7DAYS.cards.slice(0, 5)
 };
 
