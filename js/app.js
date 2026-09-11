@@ -62,6 +62,8 @@ function initApp() {
   buildIconPickerGrid();
   buildQuickActivityBank();
   buildQuickActivitiesTray();
+  buildTimePickerDropdowns();
+  buildQuickTimeChips('all');
   renderApp();
   setupEventListeners();
   updateUndoRedoButtons();
@@ -106,30 +108,93 @@ function updateUndoRedoButtons() {
 }
 
 const MAX_CARDS = 7;
+const STORAGE_KEY_PROFILES = 'thoi_gian_bieu_profiles_v1';
+const STORAGE_KEY_STATE = 'thoi_gian_bieu_state_v4';
+
+let profilesState = {
+  activeProfileId: 'profile-1',
+  profiles: []
+};
 
 function loadSavedState() {
-  const saved = localStorage.getItem('thoi_gian_bieu_state_v4');
-  if (saved) {
+  const savedProfiles = localStorage.getItem(STORAGE_KEY_PROFILES);
+  if (savedProfiles) {
     try {
-      state = JSON.parse(saved);
+      const parsed = JSON.parse(savedProfiles);
+      if (parsed && Array.isArray(parsed.profiles) && parsed.profiles.length > 0) {
+        profilesState = parsed;
+        const active = profilesState.profiles.find(p => p.id === profilesState.activeProfileId) || profilesState.profiles[0];
+        profilesState.activeProfileId = active.id;
+        state = JSON.parse(JSON.stringify(active));
+        state.id = active.id;
+        if (!state.layoutMode || state.layoutMode === '2rows') state.layoutMode = 'photo';
+        if (!state.themePalette) state.themePalette = 'rainbow';
+        return;
+      }
+    } catch (e) {
+      console.warn("Lỗi đọc dữ liệu hồ sơ các bé:", e);
+    }
+  }
+
+  // Backward compatibility: migrate from single profile state
+  const savedSingle = localStorage.getItem(STORAGE_KEY_STATE);
+  if (savedSingle) {
+    try {
+      state = JSON.parse(savedSingle);
       if (state.cards && state.cards.length > MAX_CARDS) {
         state.cards = state.cards.slice(0, MAX_CARDS);
       }
       if (!state.layoutMode || state.layoutMode === '2rows') state.layoutMode = 'photo';
       if (!state.themePalette) state.themePalette = 'rainbow';
+
+      const defaultId = 'profile-1';
+      state.id = defaultId;
+      profilesState = {
+        activeProfileId: defaultId,
+        profiles: [{
+          ...JSON.parse(JSON.stringify(state)),
+          id: defaultId
+        }]
+      };
+      saveProfilesState();
       return;
     } catch (e) {
-      console.warn("Lỗi đọc dữ liệu đã lưu, dùng mẫu mặc định:", e);
+      console.warn("Lỗi đọc dữ liệu đơn:", e);
     }
   }
-  loadPreset('original', false);
+
+  // Initial setup from PRESET_ORIGINAL
+  state = JSON.parse(JSON.stringify(window.TimetablePresets.PRESET_ORIGINAL));
+  const defaultId = 'profile-1';
+  state.id = defaultId;
+  profilesState = {
+    activeProfileId: defaultId,
+    profiles: [{
+      ...JSON.parse(JSON.stringify(state)),
+      id: defaultId
+    }]
+  };
+  saveProfilesState();
+}
+
+function saveProfilesState() {
+  localStorage.setItem(STORAGE_KEY_PROFILES, JSON.stringify(profilesState));
+  localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(state));
 }
 
 function saveState() {
   if (state.cards && state.cards.length > MAX_CARDS) {
     state.cards = state.cards.slice(0, MAX_CARDS);
   }
-  localStorage.setItem('thoi_gian_bieu_state_v4', JSON.stringify(state));
+  const activeId = profilesState.activeProfileId || state.id || 'profile-1';
+  state.id = activeId;
+  const idx = profilesState.profiles.findIndex(p => p.id === activeId);
+  if (idx >= 0) {
+    profilesState.profiles[idx] = JSON.parse(JSON.stringify(state));
+  } else {
+    profilesState.profiles.push(JSON.parse(JSON.stringify(state)));
+  }
+  saveProfilesState();
 }
 
 function loadPreset(name, recordHistory = true) {
@@ -177,6 +242,7 @@ function renderApp() {
     sheet.className = `timetable-sheet theme-${state.themePalette || 'rainbow'}`;
   }
 
+  renderProfileSelector();
   renderHeader();
   renderGrid();
   updateUndoRedoButtons();
@@ -816,6 +882,8 @@ function buildQuickActivitiesTray() {
       editingSlotInfo = null;
       document.getElementById('slot-text-input').value = item.text;
       document.getElementById('slot-time-input').value = item.time;
+      syncDropdownsFromTime(item.time);
+      buildQuickTimeChips('all');
       document.getElementById('slot-section-select').value = item.section || '';
       chooseIcon(item.icon);
       renderMultiDayCheckboxes(state.cards[0]?.id || '');
@@ -861,6 +929,7 @@ function buildQuickActivityBank() {
 
 function applyQuickActivity(item) {
   document.getElementById('slot-time-input').value = item.time;
+  syncDropdownsFromTime(item.time);
   document.getElementById('slot-text-input').value = item.text;
   document.getElementById('slot-section-select').value = item.section || '';
   chooseIcon(item.icon);
@@ -906,9 +975,12 @@ function openAddSlotModal(cardId) {
   editingSlotInfo = { cardId: cardId, slotId: null };
   document.getElementById('modal-slot-title').textContent = 'Thêm Hoạt Động Cho Bé';
   document.getElementById('slot-text-input').value = '';
-  document.getElementById('slot-time-input').value = '';
-  document.getElementById('slot-section-select').value = '';
-  chooseIcon('🕒');
+  document.getElementById('slot-time-input').value = '07h30 - 11h50';
+  document.getElementById('slot-section-select').value = 'Sáng:';
+  setSingleTimePickerMode(false);
+  syncDropdownsFromTime('07h30 - 11h50');
+  buildQuickTimeChips('all');
+  chooseIcon('🏫');
   isIconManuallyChosen = false;
 
   renderMultiDayCheckboxes(cardId);
@@ -926,7 +998,12 @@ function openEditSlotModal(cardId, slotId) {
   if (!slot) return;
 
   document.getElementById('slot-text-input').value = slot.text || '';
-  document.getElementById('slot-time-input').value = slot.time || '';
+  const slotTime = slot.time || '';
+  document.getElementById('slot-time-input').value = slotTime;
+  setSingleTimePickerMode(!slotTime.includes('-'));
+  syncDropdownsFromTime(slotTime);
+  buildQuickTimeChips('all');
+
   document.getElementById('slot-section-select').value = slot.section || '';
   chooseIcon(slot.icon || '🕒');
   isIconManuallyChosen = true;
@@ -1032,8 +1109,217 @@ function moveSlot(cardId, index, direction) {
   renderApp();
 }
 
-function setQuickTime(val) {
-  document.getElementById('slot-time-input').value = val;
+// -------------------------------------------------------------
+// Smart Time Picker & Quick Period Chips
+// -------------------------------------------------------------
+const TIME_DROPDOWN_OPTIONS = [
+  '06h00', '06h15', '06h30', '06h45',
+  '07h00', '07h15', '07h30', '07h45',
+  '08h00', '08h15', '08h30', '08h45',
+  '09h00', '09h15', '09h30', '09h45',
+  '10h00', '10h15', '10h30', '10h45',
+  '11h00', '11h15', '11h30', '11h45', '11h50',
+  '12h00', '12h15', '12h30', '12h45',
+  '13h00', '13h15', '13h30', '13h45',
+  '14h00', '14h15', '14h30', '14h45',
+  '15h00', '15h15', '15h30', '15h45',
+  '16h00', '16h15', '16h30', '16h45',
+  '17h00', '17h15', '17h30', '17h45',
+  '18h00', '18h15', '18h30', '18h45',
+  '19h00', '19h15', '19h30', '19h45',
+  '20h00', '20h15', '20h30', '20h45',
+  '21h00', '21h15', '21h30', '21h45',
+  '22h00', '22h15', '22h30', '23h00'
+];
+
+const SMART_TIME_CHIPS = [
+  // Sáng
+  { time: '07h30 - 11h50', label: '07h30 - 11h50 (Chính khóa)', period: 'sang', section: 'Sáng:' },
+  { time: '07h00 - 07h30', label: '07h00 - 07h30 (Ăn sáng)', period: 'sang', section: 'Sáng:' },
+  { time: '08h00 - 10h00', label: '08h00 - 10h00 (Học sáng)', period: 'sang', section: 'Sáng:' },
+  { time: '07h30 - 09h00', label: '07h30 - 09h00 (Tiết 1-2)', period: 'sang', section: 'Sáng:' },
+  // Trưa
+  { time: '11h50 - 13h30', label: '11h50 - 13h30 (Ăn trưa & Nghỉ)', period: 'trua', section: 'Trưa:' },
+  { time: '12h00 - 13h00', label: '12h00 - 13h00 (Ăn trưa)', period: 'trua', section: 'Trưa:' },
+  { time: '13h00 - 14h00', label: '13h00 - 14h00 (Nghỉ trưa)', period: 'trua', section: 'Trưa:' },
+  { time: '13h30 - 14h30', label: '13h30 - 14h30 (Ngủ trưa)', period: 'trua', section: 'Chiều:' },
+  // Chiều
+  { time: '14h00 - 16h30', label: '14h00 - 16h30 (Học chiều)', period: 'chieu', section: 'Chiều:' },
+  { time: '14h30 - 15h30', label: '14h30 - 15h30 (Làm BTVN)', period: 'chieu', section: 'Chiều:' },
+  { time: '15h30 - 16h30', label: '15h30 - 16h30 (Tập gym / Thể thao)', period: 'chieu', section: 'Chiều:' },
+  { time: '16h30 - 16h45', label: '16h30 - 16h45 (Tắm rửa nhanh)', period: 'chieu', section: 'Chiều:' },
+  { time: '16h45', label: '16h45 (Di chuyển / Xe bus)', period: 'chieu', section: 'Chiều:', isSingle: true },
+  { time: '17h00 - 19h00', label: '17h00 - 19h00 (Học thêm Anh)', period: 'chieu', section: 'Chiều:' },
+  // Tối
+  { time: '19h00 - 20h00', label: '19h00 - 20h00 (Về nhà, ăn tối)', period: 'toi', section: 'Tối:' },
+  { time: '19h30 - 21h00', label: '19h30 - 21h00 (Tự học tối)', period: 'toi', section: 'Tối:' },
+  { time: '20h00 - 21h30', label: '20h00 - 21h30 (Soạn sách, BTVN)', period: 'toi', section: 'Tối:' },
+  { time: '21h30 - 22h00', label: '21h30 - 22h00 (Đọc sách/truyện)', period: 'toi', section: 'Tối:' },
+  { time: '21h30 trở đi', label: '21h30 trở đi (Nghỉ & Ngủ)', period: 'toi', section: 'Tối:', isSingle: true },
+  { time: '22h00', label: '22h00 (Đi ngủ)', period: 'toi', section: 'Tối:', isSingle: true }
+];
+
+let isSingleTimeMode = false;
+
+function buildTimePickerDropdowns() {
+  const startSelect = document.getElementById('time-picker-start');
+  const endSelect = document.getElementById('time-picker-end');
+  if (!startSelect || !endSelect) return;
+
+  startSelect.innerHTML = '';
+  endSelect.innerHTML = '';
+
+  TIME_DROPDOWN_OPTIONS.forEach(opt => {
+    const sOpt = document.createElement('option');
+    sOpt.value = opt;
+    sOpt.textContent = opt;
+    startSelect.appendChild(sOpt);
+
+    const eOpt = document.createElement('option');
+    eOpt.value = opt;
+    eOpt.textContent = opt;
+    endSelect.appendChild(eOpt);
+  });
+}
+
+function buildQuickTimeChips(period = 'all') {
+  const container = document.getElementById('quick-time-chips');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const filtered = (period === 'all')
+    ? SMART_TIME_CHIPS
+    : SMART_TIME_CHIPS.filter(c => c.period === period);
+
+  filtered.forEach(chip => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'time-chip-btn';
+    btn.textContent = chip.label || chip.time;
+    btn.title = `Chọn khung giờ: ${chip.time}`;
+    btn.onclick = () => {
+      setQuickTime(chip.time, chip.section, chip.isSingle);
+    };
+    container.appendChild(btn);
+  });
+}
+
+function filterTimeChips(period, tabBtn) {
+  document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+  if (tabBtn) tabBtn.classList.add('active');
+  buildQuickTimeChips(period);
+}
+
+function setSingleTimePickerMode(isSingle) {
+  isSingleTimeMode = !!isSingle;
+  const endWrapper = document.getElementById('time-end-wrapper');
+  const arrow = document.getElementById('time-range-arrow');
+  const toggleBtn = document.getElementById('btn-toggle-single-time');
+
+  if (isSingleTimeMode) {
+    if (endWrapper) endWrapper.style.display = 'none';
+    if (arrow) arrow.style.display = 'none';
+    if (toggleBtn) {
+      toggleBtn.textContent = '⏱️ Khoảng giờ';
+      toggleBtn.classList.add('active');
+    }
+  } else {
+    if (endWrapper) endWrapper.style.display = 'flex';
+    if (arrow) arrow.style.display = 'inline-block';
+    if (toggleBtn) {
+      toggleBtn.textContent = '⏱️ 1 mốc giờ';
+      toggleBtn.classList.remove('active');
+    }
+  }
+}
+
+function toggleSingleTimePicker() {
+  setSingleTimePickerMode(!isSingleTimeMode);
+  handleTimeDropdownChange();
+}
+
+function syncDropdownsFromTime(val) {
+  if (!val) return;
+  const startSelect = document.getElementById('time-picker-start');
+  const endSelect = document.getElementById('time-picker-end');
+  if (!startSelect || !endSelect) return;
+
+  const parts = val.split('-').map(s => s.trim());
+  if (parts.length >= 2) {
+    setSingleTimePickerMode(false);
+    ensureDropdownOption(startSelect, parts[0]);
+    startSelect.value = parts[0];
+
+    ensureDropdownOption(endSelect, parts[1]);
+    endSelect.value = parts[1];
+  } else if (parts.length === 1 && parts[0]) {
+    setSingleTimePickerMode(true);
+    ensureDropdownOption(startSelect, parts[0]);
+    startSelect.value = parts[0];
+  }
+}
+
+function ensureDropdownOption(selectEl, value) {
+  if (!value) return;
+  const exists = Array.from(selectEl.options).some(o => o.value === value);
+  if (!exists) {
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = value;
+    selectEl.appendChild(opt);
+  }
+}
+
+function handleTimeDropdownChange() {
+  const startSelect = document.getElementById('time-picker-start');
+  const endSelect = document.getElementById('time-picker-end');
+  const input = document.getElementById('slot-time-input');
+  if (!startSelect || !endSelect || !input) return;
+
+  if (isSingleTimeMode) {
+    input.value = startSelect.value;
+  } else {
+    input.value = `${startSelect.value} - ${endSelect.value}`;
+  }
+
+  autoSuggestSection(input.value);
+}
+
+function handleManualTimeInput() {
+  const input = document.getElementById('slot-time-input');
+  if (!input) return;
+  const val = input.value.trim();
+  syncDropdownsFromTime(val);
+  autoSuggestSection(val);
+}
+
+function setQuickTime(val, section, isSingle = false) {
+  const input = document.getElementById('slot-time-input');
+  if (input) input.value = val;
+
+  setSingleTimePickerMode(isSingle || !val.includes('-'));
+  syncDropdownsFromTime(val);
+
+  const sectionSelect = document.getElementById('slot-section-select');
+  if (sectionSelect && section && !sectionSelect.value) {
+    sectionSelect.value = section;
+  }
+}
+
+function autoSuggestSection(timeStr) {
+  const sectionSelect = document.getElementById('slot-section-select');
+  if (!sectionSelect || sectionSelect.value) return;
+
+  const clean = timeStr.toLowerCase();
+  if (clean.includes('06h') || clean.includes('07h') || clean.includes('08h') || clean.includes('09h') || clean.includes('10h')) {
+    sectionSelect.value = 'Sáng:';
+  } else if (clean.includes('11h') || clean.includes('12h') || clean.includes('13h')) {
+    sectionSelect.value = 'Trưa:';
+  } else if (clean.includes('14h') || clean.includes('15h') || clean.includes('16h') || clean.includes('17h')) {
+    sectionSelect.value = 'Chiều:';
+  } else if (clean.includes('18h') || clean.includes('19h') || clean.includes('20h') || clean.includes('21h') || clean.includes('22h')) {
+    sectionSelect.value = 'Tối:';
+  }
 }
 
 function handleSlotTextInput(text) {
@@ -1248,6 +1534,7 @@ function saveHeaderEdit() {
 
   saveState();
   renderHeader();
+  renderProfileSelector();
   closeModal('modal-header-edit');
   showToast("Đã cập nhật tiêu đề thành công! 🌟");
 }
@@ -1399,6 +1686,343 @@ function printTimetable() {
 }
 
 // -------------------------------------------------------------
+// Multi-Profile Management (Các Bé)
+// -------------------------------------------------------------
+function renderProfileSelector() {
+  const select = document.getElementById('select-profile');
+  if (!select) return;
+
+  select.innerHTML = '';
+  profilesState.profiles.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    let emoji = '👶';
+    if (p.mascotTheme === 'boys') emoji = '👦';
+    else if (p.mascotTheme === 'girls') emoji = '👧';
+    else if (p.mascotTheme === 'mixed') emoji = '👫';
+    opt.textContent = `${emoji} ${p.studentName || 'Bé'}`;
+    if (p.id === profilesState.activeProfileId) {
+      opt.selected = true;
+    }
+    select.appendChild(opt);
+  });
+
+  const delBtn = document.getElementById('btn-del-profile');
+  if (delBtn) {
+    delBtn.style.display = (profilesState.profiles.length > 1) ? 'inline-flex' : 'none';
+  }
+}
+
+function switchProfile(newId) {
+  if (!newId || newId === profilesState.activeProfileId) return;
+
+  // Save current active state before switching
+  const currentIdx = profilesState.profiles.findIndex(p => p.id === profilesState.activeProfileId);
+  if (currentIdx >= 0) {
+    state.id = profilesState.activeProfileId;
+    profilesState.profiles[currentIdx] = JSON.parse(JSON.stringify(state));
+  }
+
+  const target = profilesState.profiles.find(p => p.id === newId);
+  if (!target) return;
+
+  profilesState.activeProfileId = target.id;
+  state = JSON.parse(JSON.stringify(target));
+  state.id = target.id;
+  if (!state.layoutMode || state.layoutMode === '2rows') state.layoutMode = 'photo';
+  if (!state.themePalette) state.themePalette = 'rainbow';
+
+  saveProfilesState();
+  undoStack = [];
+  redoStack = [];
+  renderApp();
+  showToast(`Đã chuyển sang thời gian biểu của ${state.studentName}! 👶`);
+}
+
+function openAddProfileModal() {
+  document.getElementById('profile-name-input').value = '';
+  document.getElementById('profile-mascot-select').value = 'girls';
+  document.getElementById('profile-theme-select').value = 'candy';
+  document.getElementById('profile-layout-select').value = state.layoutMode || 'photo';
+  document.getElementById('profile-source-select').value = 'clone_current';
+
+  openModal('modal-profile');
+  setTimeout(() => document.getElementById('profile-name-input').focus(), 150);
+}
+
+function saveProfileModal() {
+  const name = document.getElementById('profile-name-input').value.trim();
+  if (!name) {
+    alert('Vui lòng nhập tên của bé!');
+    document.getElementById('profile-name-input').focus();
+    return;
+  }
+
+  const mascot = document.getElementById('profile-mascot-select').value;
+  const theme = document.getElementById('profile-theme-select').value;
+  const layout = document.getElementById('profile-layout-select').value;
+  const source = document.getElementById('profile-source-select').value;
+
+  let initialCards = [];
+  if (source === 'clone_current') {
+    initialCards = JSON.parse(JSON.stringify(state.cards));
+  } else if (source === 'original') {
+    initialCards = JSON.parse(JSON.stringify(window.TimetablePresets.PRESET_ORIGINAL.cards));
+  } else if (source === 'notes') {
+    initialCards = JSON.parse(JSON.stringify(window.TimetablePresets.PRESET_6DAYS_NOTES.cards));
+  }
+
+  // Save current active state before switching
+  const currentIdx = profilesState.profiles.findIndex(p => p.id === profilesState.activeProfileId);
+  if (currentIdx >= 0) {
+    state.id = profilesState.activeProfileId;
+    profilesState.profiles[currentIdx] = JSON.parse(JSON.stringify(state));
+  }
+
+  const newProfile = {
+    id: 'profile_' + Date.now(),
+    studentName: name,
+    mascotTheme: mascot,
+    themePalette: theme,
+    layoutMode: layout,
+    title: 'THỜI GIAN BIỂU',
+    subtitle: '',
+    cards: initialCards
+  };
+
+  profilesState.profiles.push(newProfile);
+  profilesState.activeProfileId = newProfile.id;
+  state = JSON.parse(JSON.stringify(newProfile));
+
+  saveProfilesState();
+  undoStack = [];
+  redoStack = [];
+  renderApp();
+  closeModal('modal-profile');
+  showToast(`Chào mừng bé ${name}! Đã tạo hồ sơ thành công 👶✨`);
+}
+
+function openCloneProfileModal() {
+  const srcNameEl = document.getElementById('clone-source-name');
+  if (srcNameEl) srcNameEl.textContent = state.studentName || 'Bé hiện tại';
+
+  const selectTarget = document.getElementById('clone-target-profile-select');
+  const existingRadio = document.querySelector('input[name="clone-mode"][value="existing"]');
+  const newRadio = document.querySelector('input[name="clone-mode"][value="new"]');
+
+  if (selectTarget) {
+    selectTarget.innerHTML = '';
+    const otherProfiles = profilesState.profiles.filter(p => p.id !== profilesState.activeProfileId);
+    otherProfiles.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      let emoji = (p.mascotTheme === 'boys') ? '👦' : (p.mascotTheme === 'girls' ? '👧' : '👫');
+      opt.textContent = `${emoji} ${p.studentName}`;
+      selectTarget.appendChild(opt);
+    });
+
+    if (otherProfiles.length === 0) {
+      if (existingRadio) existingRadio.disabled = true;
+      if (newRadio) newRadio.checked = true;
+    } else {
+      if (existingRadio) existingRadio.disabled = false;
+    }
+  }
+
+  const nameInput = document.getElementById('clone-new-name');
+  if (nameInput) nameInput.value = '';
+
+  toggleCloneModeUI();
+  openModal('modal-clone-profile');
+  if (newRadio && newRadio.checked && nameInput) {
+    setTimeout(() => nameInput.focus(), 150);
+  }
+}
+
+function toggleCloneModeUI() {
+  const modeRadio = document.querySelector('input[name="clone-mode"]:checked');
+  const mode = modeRadio ? modeRadio.value : 'new';
+  const newFields = document.getElementById('clone-new-child-fields');
+  const existFields = document.getElementById('clone-existing-child-fields');
+
+  if (newFields) newFields.style.display = (mode === 'new') ? 'flex' : 'none';
+  if (existFields) existFields.style.display = (mode === 'existing') ? 'block' : 'none';
+}
+
+function executeCloneProfile() {
+  const modeRadio = document.querySelector('input[name="clone-mode"]:checked');
+  const mode = modeRadio ? modeRadio.value : 'new';
+
+  if (mode === 'new') {
+    const name = document.getElementById('clone-new-name').value.trim();
+    if (!name) {
+      alert('Vui lòng nhập tên cho bé mới!');
+      document.getElementById('clone-new-name').focus();
+      return;
+    }
+    const mascot = document.getElementById('clone-new-mascot').value || 'girls';
+    const theme = document.getElementById('clone-new-theme').value || 'candy';
+
+    const newProfile = {
+      id: 'profile_' + Date.now(),
+      studentName: name,
+      mascotTheme: mascot,
+      themePalette: theme,
+      layoutMode: state.layoutMode || 'photo',
+      title: state.title || 'THỜI GIAN BIỂU',
+      subtitle: state.subtitle || '',
+      cards: JSON.parse(JSON.stringify(state.cards))
+    };
+
+    // Save current active state
+    const currentIdx = profilesState.profiles.findIndex(p => p.id === profilesState.activeProfileId);
+    if (currentIdx >= 0) {
+      state.id = profilesState.activeProfileId;
+      profilesState.profiles[currentIdx] = JSON.parse(JSON.stringify(state));
+    }
+
+    profilesState.profiles.push(newProfile);
+    profilesState.activeProfileId = newProfile.id;
+    state = JSON.parse(JSON.stringify(newProfile));
+
+    saveProfilesState();
+    undoStack = [];
+    redoStack = [];
+    renderApp();
+    closeModal('modal-clone-profile');
+    showToast(`Đã nhân bản lịch sang bé ${name} thành công! 📋🎉`);
+  } else {
+    const targetSelect = document.getElementById('clone-target-profile-select');
+    const targetId = targetSelect ? targetSelect.value : null;
+    if (!targetId) {
+      alert('Không tìm thấy bé để sao chép đến!');
+      return;
+    }
+
+    const targetProf = profilesState.profiles.find(p => p.id === targetId);
+    if (!targetProf) return;
+
+    if (!confirm(`Bạn có chắc chắn muốn ghi đè toàn bộ lịch của bé "${targetProf.studentName}" bằng lịch của bé "${state.studentName}" không?`)) {
+      return;
+    }
+
+    targetProf.cards = JSON.parse(JSON.stringify(state.cards));
+    saveProfilesState();
+    closeModal('modal-clone-profile');
+    showToast(`Đã chép lịch sang bé ${targetProf.studentName}! 📋`);
+  }
+}
+
+function deleteCurrentProfile() {
+  if (profilesState.profiles.length <= 1) {
+    alert('Không thể xóa khi chỉ còn 1 hồ sơ bé! Bạn có thể đổi tên bé trực tiếp trên thanh công cụ.');
+    return;
+  }
+
+  if (!confirm(`Bạn có chắc muốn xóa vĩnh viễn hồ sơ của bé "${state.studentName}" không?`)) {
+    return;
+  }
+
+  const deletedName = state.studentName;
+  profilesState.profiles = profilesState.profiles.filter(p => p.id !== profilesState.activeProfileId);
+  const nextProfile = profilesState.profiles[0];
+  profilesState.activeProfileId = nextProfile.id;
+  state = JSON.parse(JSON.stringify(nextProfile));
+  state.id = nextProfile.id;
+
+  saveProfilesState();
+  undoStack = [];
+  redoStack = [];
+  renderApp();
+  showToast(`Đã xóa hồ sơ bé ${deletedName}! Hiện đang hiển thị ${state.studentName} 🗑️`);
+}
+
+function backupProfilesJSON() {
+  // Sync state into profilesState first
+  const currentIdx = profilesState.profiles.findIndex(p => p.id === profilesState.activeProfileId);
+  if (currentIdx >= 0) {
+    profilesState.profiles[currentIdx] = JSON.parse(JSON.stringify(state));
+  }
+
+  const backupData = {
+    appName: 'ThoiGianBieu_Students',
+    schemaVersion: 'v1',
+    exportedAt: new Date().toISOString(),
+    profilesState: profilesState
+  };
+
+  const jsonStr = JSON.stringify(backupData, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const dateStr = new Date().toISOString().slice(0, 10);
+  a.download = `Thoi_Gian_Bieu_Sao_Luu_${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Đã tải về file sao lưu .json thành công! 💾');
+}
+
+function triggerRestoreJSON() {
+  const fileInput = document.getElementById('file-import-json');
+  if (fileInput) fileInput.click();
+}
+
+function handleRestoreJSON(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data && data.profilesState && Array.isArray(data.profilesState.profiles) && data.profilesState.profiles.length > 0) {
+        profilesState = data.profilesState;
+        const active = profilesState.profiles.find(p => p.id === profilesState.activeProfileId) || profilesState.profiles[0];
+        profilesState.activeProfileId = active.id;
+        state = JSON.parse(JSON.stringify(active));
+      } else if (data && Array.isArray(data.profiles) && data.profiles.length > 0) {
+        profilesState = {
+          activeProfileId: data.profiles[0].id,
+          profiles: data.profiles
+        };
+        state = JSON.parse(JSON.stringify(data.profiles[0]));
+      } else if (data && Array.isArray(data.cards)) {
+        // Single profile format
+        const id = 'profile_' + Date.now();
+        profilesState = {
+          activeProfileId: id,
+          profiles: [{
+            id: id,
+            ...data
+          }]
+        };
+        state = JSON.parse(JSON.stringify(profilesState.profiles[0]));
+      } else {
+        throw new Error('Định dạng file không hợp lệ');
+      }
+
+      if (!state.layoutMode || state.layoutMode === '2rows') state.layoutMode = 'photo';
+      if (!state.themePalette) state.themePalette = 'rainbow';
+
+      saveProfilesState();
+      undoStack = [];
+      redoStack = [];
+      renderApp();
+      showToast(`Khôi phục dữ liệu thành công! Tìm thấy ${profilesState.profiles.length} bé 📂✨`);
+    } catch (err) {
+      console.error(err);
+      alert('File JSON không đúng cấu trúc thời gian biểu hoặc bị lỗi! Vui lòng chọn đúng file sao lưu.');
+    } finally {
+      event.target.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
+
+// -------------------------------------------------------------
 // Setup Global Event Listeners & Keyboard Shortcuts
 // -------------------------------------------------------------
 function setupEventListeners() {
@@ -1408,6 +2032,7 @@ function setupEventListeners() {
       state.studentName = e.target.value.trim() || 'Học Sinh';
       saveState();
       renderHeader();
+      renderProfileSelector();
     });
   }
 
@@ -1428,6 +2053,7 @@ function setupEventListeners() {
       state.mascotTheme = e.target.value;
       saveState();
       renderHeader();
+      renderProfileSelector();
     });
   }
 

@@ -1228,18 +1228,163 @@ body {
   margin-top: 4px;
 }
 .time-chip {
-  background: #e2e8f0;
-  border: none;
-  border-radius: 4px;
-  padding: 2px 7px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  padding: 2.5px 7px;
   font-size: 0.72rem;
   font-weight: 700;
   color: #334155;
   cursor: pointer;
+  transition: all 0.12s;
+  font-family: var(--font-main);
 }
 .time-chip:hover {
-  background: #cbd5e1;
+  background: #e0f2fe;
+  border-color: #38bdf8;
+  color: #0284c7;
+  transform: translateY(-1px);
+}
+.time-chip.active {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+}
+
+/* Enhanced Smart Time Picker Container */
+.smart-time-box {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.smart-time-box label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.smart-time-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.time-field-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 2px 6px;
+  transition: border-color 0.15s;
+}
+.time-field-wrapper:focus-within {
+  border-color: #0284c7;
+}
+
+.time-field-prefix {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #0284c7;
+}
+
+.time-select-pill {
+  border: none !important;
+  background: transparent !important;
+  padding: 2px 2px !important;
+  font-size: 0.84rem !important;
+  font-weight: 800;
   color: #0f172a;
+  outline: none;
+  cursor: pointer;
+}
+
+.time-range-arrow {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.btn-toggle-single {
+  margin-left: auto;
+  font-size: 0.68rem;
+  padding: 2px 6px;
+}
+
+.time-manual-sync {
+  margin-top: 1px;
+}
+.time-manual-sync .input-field {
+  background: #ffffff;
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.84rem;
+}
+
+.time-chips-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 3px;
+}
+
+.time-period-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.period-tab {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 1.5px 8px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.period-tab:hover {
+  background: #f1f5f9;
+  color: #0284c7;
+}
+.period-tab.active {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+}
+
+/* Child Profile Selector in Toolbar */
+.profile-selector-group {
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  border-radius: 8px;
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.profile-selector-group label {
+  color: #166534 !important;
+  font-weight: 850 !important;
+}
+
+.select-profile {
+  font-weight: 800 !important;
+  color: #15803d !important;
+  border-color: #86efac !important;
+  background: #ffffff !important;
+  padding: 3px 8px !important;
+  cursor: pointer;
 }
 
 /* ========================================================= */

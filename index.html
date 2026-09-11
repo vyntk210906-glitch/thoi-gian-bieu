@@ -52,13 +52,28 @@
 
   <!-- Secondary Settings Toolbar -->
   <div class="toolbar no-print">
-    <div class="toolbar-group">
-      <label for="input-student-name">Tên bé:</label>
-      <input type="text" id="input-student-name" class="input-field" placeholder="Nhập tên học sinh..." style="width: 160px;">
+    <!-- Child Profile Switcher Group -->
+    <div class="toolbar-group profile-selector-group">
+      <label for="select-profile">👶 Bé:</label>
+      <select id="select-profile" class="input-field select-profile" onchange="switchProfile(this.value)" title="Chọn hồ sơ bé"></select>
+      <button type="button" class="btn btn-outline btn-sm" onclick="openAddProfileModal()" title="Thêm hồ sơ bé mới">
+        <span>➕</span> Bé Mới
+      </button>
+      <button type="button" class="btn btn-outline btn-sm" onclick="openCloneProfileModal()" title="Sao chép toàn bộ lịch hiện tại sang bé khác">
+        <span>📋</span> Chép Lịch
+      </button>
+      <button type="button" class="btn btn-outline btn-sm" onclick="deleteCurrentProfile()" id="btn-del-profile" title="Xóa hồ sơ bé này" style="color: #ef4444;">
+        🗑️
+      </button>
     </div>
 
     <div class="toolbar-group">
-      <label for="select-theme">Tông màu cute:</label>
+      <label for="input-student-name">Tên bé:</label>
+      <input type="text" id="input-student-name" class="input-field" placeholder="Nhập tên học sinh..." style="width: 150px;">
+    </div>
+
+    <div class="toolbar-group">
+      <label for="select-theme">Tông màu:</label>
       <select id="select-theme" class="input-field">
         <option value="rainbow">🌈 Cầu vồng tươi vui</option>
         <option value="sky">🌊 Xanh da trời mây biếc</option>
@@ -89,11 +104,20 @@
     </div>
 
     <div class="toolbar-group" style="margin-left: auto;">
+      <!-- Backup & Restore JSON -->
+      <button class="btn btn-outline btn-sm" onclick="backupProfilesJSON()" title="Tải file .json sao lưu dữ liệu toàn bộ các bé">
+        <span>💾</span> Sao Lưu
+      </button>
+      <button class="btn btn-outline btn-sm" onclick="triggerRestoreJSON()" title="Khôi phục dữ liệu từ file .json máy khác">
+        <span>📂</span> Khôi Phục
+      </button>
+      <input type="file" id="file-import-json" accept=".json" style="display: none;" onchange="handleRestoreJSON(event)">
+
       <button class="btn btn-outline btn-sm" onclick="openHeaderEditModal()" title="Sửa tiêu đề chính">
         ✏️ Tiêu Đề
       </button>
-      <button class="btn btn-outline btn-sm" onclick="if(confirm('Khôi phục lại dữ liệu mẫu ban đầu?')) { localStorage.removeItem('thoi_gian_bieu_state_v4'); localStorage.removeItem('thoi_gian_bieu_state_v2'); loadPreset('original', false); }" title="Làm mới">
-        🔄 Khôi Phục
+      <button class="btn btn-outline btn-sm" onclick="resetCurrentProfile()" title="Khôi phục lại mẫu chuẩn cho bé này">
+        🔄 Làm Mới
       </button>
     </div>
   </div>
@@ -178,21 +202,45 @@
           <small id="icon-hint-text" style="color: #0284c7; font-size: 0.78rem; font-weight: 600;">Tự động chọn icon cute theo từ khóa khi nhập</small>
         </div>
 
-        <!-- Time Range Input -->
-        <div class="form-group">
-          <label for="slot-time-input">Khung thời gian:</label>
-          <input type="text" id="slot-time-input" class="input-field" placeholder="VD: Sáng (07h30 - 11h50), 13h30 - 14h30, 19h00 - 20h00...">
-          <!-- Quick Time Chips -->
-          <div class="time-chips">
-            <button type="button" class="time-chip" onclick="setQuickTime('Sáng (07h30 - 11h50)')">Sáng (07h30 - 11h50)</button>
-            <button type="button" class="time-chip" onclick="setQuickTime('13h30 - 14h30')">13h30 - 14h30</button>
-            <button type="button" class="time-chip" onclick="setQuickTime('14h30 - 15h30')">14h30 - 15h30</button>
-            <button type="button" class="time-chip" onclick="setQuickTime('15h30 - 16h30')">15h30 - 16h30</button>
-            <button type="button" class="time-chip" onclick="setQuickTime('16h30 - 18h30')">16h30 - 18h30</button>
-            <button type="button" class="time-chip" onclick="setQuickTime('17h00 - 19h00')">17h00 - 19h00</button>
-            <button type="button" class="time-chip" onclick="setQuickTime('19h00 - 20h00')">19h00 - 20h00</button>
-            <button type="button" class="time-chip" onclick="setQuickTime('20h00 - 21h30')">20h00 - 21h30</button>
-            <button type="button" class="time-chip" onclick="setQuickTime('21h30 trở đi')">21h30 trở đi</button>
+        <!-- Enhanced Smart Time Picker -->
+        <div class="smart-time-box">
+          <label>⏰ Khung thời gian hoạt động:</label>
+          
+          <div class="smart-time-controls">
+            <div class="time-field-wrapper">
+              <span class="time-field-prefix">Từ:</span>
+              <select id="time-picker-start" class="time-select-pill" onchange="handleTimeDropdownChange()"></select>
+            </div>
+
+            <span class="time-range-arrow" id="time-range-arrow">➜</span>
+
+            <div class="time-field-wrapper" id="time-end-wrapper">
+              <span class="time-field-prefix">Đến:</span>
+              <select id="time-picker-end" class="time-select-pill" onchange="handleTimeDropdownChange()"></select>
+            </div>
+
+            <button type="button" class="btn btn-outline btn-xs btn-toggle-single" id="btn-toggle-single-time" onclick="toggleSingleTimePicker()" title="Chuyển giữa khoảng giờ (VD: 07h30 - 11h50) và 1 mốc giờ (VD: 16h45)">
+              ⏱️ 1 mốc giờ
+            </button>
+          </div>
+
+          <!-- Direct text input synchronized with dropdowns -->
+          <div class="time-manual-sync">
+            <input type="text" id="slot-time-input" class="input-field" placeholder="VD: 07h30 - 11h50, 13h30 - 14h30, 16h45..." oninput="handleManualTimeInput()">
+          </div>
+
+          <!-- Quick Time Chips Grouped by Session -->
+          <div class="time-chips-container">
+            <div class="time-period-tabs">
+              <button type="button" class="period-tab active" onclick="filterTimeChips('all', this)">Tất cả</button>
+              <button type="button" class="period-tab" onclick="filterTimeChips('sang', this)">🌅 Sáng</button>
+              <button type="button" class="period-tab" onclick="filterTimeChips('trua', this)">🍱 Trưa</button>
+              <button type="button" class="period-tab" onclick="filterTimeChips('chieu', this)">⛅ Chiều</button>
+              <button type="button" class="period-tab" onclick="filterTimeChips('toi', this)">🌙 Tối</button>
+            </div>
+            <div class="time-chips" id="quick-time-chips">
+              <!-- Injected by buildQuickTimeChips() -->
+            </div>
           </div>
         </div>
 
@@ -335,6 +383,133 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modal-card')">Hủy</button>
         <button type="button" class="btn btn-primary" onclick="saveCard()">Lưu Khối</button>
+      </div>
+    </div>
+  <!-- Modal: Add / Edit Child Profile -->
+  <div class="modal-backdrop" id="modal-profile">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-profile-title">👶 Thêm Hồ Sơ Bé Mới</div>
+        <button class="modal-close" onclick="closeModal('modal-profile')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="profile-name-input">Tên của bé (*):</label>
+          <input type="text" id="profile-name-input" class="input-field" placeholder="VD: Bé Bảo An, Tuệ Lâm, Minh Khang...">
+        </div>
+
+        <div class="form-group">
+          <label for="profile-mascot-select">Linh vật hiển thị trên bảng:</label>
+          <select id="profile-mascot-select" class="input-field">
+            <option value="girls">👧 Bé gái đáng yêu</option>
+            <option value="boys">👦 Bé trai (Chuẩn mẫu)</option>
+            <option value="mixed">👫 Bé trai & Bé gái</option>
+            <option value="none">Ẩn linh vật</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="profile-theme-select">Tông màu cute:</label>
+          <select id="profile-theme-select" class="input-field">
+            <option value="candy">🌸 Kẹo hồng ngọt ngào</option>
+            <option value="rainbow">🌈 Cầu vồng tươi vui</option>
+            <option value="sky">🌊 Xanh da trời mây biếc</option>
+            <option value="mint">🌿 Vườn xanh tươi mát</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="profile-layout-select">Bố cục bảng in:</label>
+          <select id="profile-layout-select" class="input-field">
+            <option value="photo">🖼️ Bố cục 2 tầng (Thứ 2 cao bên trái, T3 - CN xếp đôi)</option>
+            <option value="7cols">📅 7 Cột dàn đều (Thứ 2 đến Chủ Nhật)</option>
+            <option value="photo5">📋 Bố cục 5 Cột (Thứ 2 & Ghi Chú cao hai bên)</option>
+            <option value="5cols">🏫 5 Cột dàn đều (Thứ 2 đến Thứ 6)</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="profile-source-group">
+          <label for="profile-source-select">Khởi tạo lịch trình ban đầu:</label>
+          <select id="profile-source-select" class="input-field">
+            <option value="clone_current">📋 Sao chép lịch từ bé hiện tại</option>
+            <option value="original">⭐ Mẫu chuẩn: 7 Ngày Tuần (T2 - CN)</option>
+            <option value="notes">📝 Mẫu: 6 Ngày Học + Ghi Chú</option>
+            <option value="empty">📄 Bảng trống (Tự lên lịch từ đầu)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-profile')">Hủy</button>
+        <button type="button" class="btn btn-primary" onclick="saveProfileModal()">Tạo Hồ Sơ Bé 🎉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Clone Schedule to Another Child -->
+  <div class="modal-backdrop" id="modal-clone-profile">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">📋 Sao Chép Lịch Sang Bé Khác</div>
+        <button class="modal-close" onclick="closeModal('modal-clone-profile')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; color: #166534;">
+          💡 Nguồn sao chép: Toàn bộ lịch của bé <strong id="clone-source-name" style="color: #0284c7;">Trịnh Xuân Khang</strong>
+        </div>
+
+        <div class="form-group" style="margin-top: 6px;">
+          <label>Hình thức sao chép:</label>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem;">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="radio" name="clone-mode" value="new" checked onchange="toggleCloneModeUI()">
+              <b>Tạo một bé mới với lịch này</b> (Khuyên dùng khi nhà có bé thứ 2, thứ 3)
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="radio" name="clone-mode" value="existing" onchange="toggleCloneModeUI()">
+              <b>Ghi đè vào bé đã có trong danh sách</b>
+            </label>
+          </div>
+        </div>
+
+        <!-- Mode New Child -->
+        <div id="clone-new-child-fields" style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;">
+          <div class="form-group">
+            <label for="clone-new-name">Tên bé mới (*):</label>
+            <input type="text" id="clone-new-name" class="input-field" placeholder="VD: Bé Bảo An, Tuệ Lâm...">
+          </div>
+          <div class="form-group">
+            <label for="clone-new-mascot">Linh vật đại diện:</label>
+            <select id="clone-new-mascot" class="input-field">
+              <option value="girls">👧 Bé gái đáng yêu</option>
+              <option value="boys">👦 Bé trai</option>
+              <option value="mixed">👫 Bé trai & Bé gái</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="clone-new-theme">Tông màu sắc:</label>
+            <select id="clone-new-theme" class="input-field">
+              <option value="candy">🌸 Kẹo hồng ngọt ngào</option>
+              <option value="rainbow">🌈 Cầu vồng tươi vui</option>
+              <option value="sky">🌊 Xanh da trời</option>
+              <option value="mint">🌿 Vườn xanh tươi mát</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Mode Existing Child -->
+        <div id="clone-existing-child-fields" style="display: none; margin-top: 4px;">
+          <div class="form-group">
+            <label for="clone-target-profile-select">Chọn bé nhận lịch sao chép:</label>
+            <select id="clone-target-profile-select" class="input-field"></select>
+            <small style="color: #ef4444; font-size: 0.76rem; margin-top: 4px;">
+              ⚠️ Cảnh báo: Lịch hiện tại của bé này sẽ được thay thế bằng lịch của bé nguồn.
+            </small>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-clone-profile')">Hủy</button>
+        <button type="button" class="btn btn-success" onclick="executeCloneProfile()">Thực Hiện Sao Chép 📋</button>
       </div>
     </div>
   </div>
