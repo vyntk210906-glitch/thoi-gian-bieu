@@ -219,6 +219,129 @@ function renderHeader() {
   }
 }
 
+// Dynamic Grid Placement Solver
+// Ensures any 2-tier (spanRows: 2) cards span rows 1-2 without creating an implicit 3rd row,
+// and symmetrically pairs 1-tier cards across available columns.
+function computeCardLayout(cards, layoutMode) {
+  if (layoutMode === '7cols' || layoutMode === '5cols') {
+    return {
+      totalCols: cards.length,
+      colWidths: cards.map(() => '1fr').join(' '),
+      rows: '1fr',
+      placements: new Map(cards.map((c, i) => [c.id, {
+        col: i + 1,
+        row: 1,
+        spanRows: 1,
+        spanCols: 1
+      }]))
+    };
+  }
+
+  const tallItems = [];
+  const normalItems = [];
+  cards.forEach((card, index) => {
+    if (card.spanRows === 2) {
+      tallItems.push({ card, origIndex: index });
+    } else {
+      normalItems.push({ card, origIndex: index });
+    }
+  });
+
+  const numTall = tallItems.length;
+  const numNormal = normalItems.length;
+
+  // If all cards are tall (2T)
+  if (numNormal === 0) {
+    return {
+      totalCols: numTall,
+      colWidths: tallItems.map(() => '1fr').join(' '),
+      rows: '1fr',
+      placements: new Map(tallItems.map((item, i) => [item.card.id, {
+        col: i + 1,
+        row: 1,
+        spanRows: 2,
+        spanCols: 1
+      }]))
+    };
+  }
+
+  const numNormalCols = Math.ceil(numNormal / 2);
+  const totalCols = Math.max(1, numTall + numNormalCols);
+  const colSlots = new Array(totalCols).fill(null);
+
+  // Place tall cards into columns based on their relative index in cards array
+  tallItems.forEach(item => {
+    const ratio = cards.length > 1 ? item.origIndex / (cards.length - 1) : 0;
+    let idealCol = Math.round(ratio * (totalCols - 1));
+    let assignedCol = idealCol;
+    if (colSlots[assignedCol] !== null) {
+      let dist = 1;
+      let found = false;
+      while (!found) {
+        if (idealCol - dist >= 0 && colSlots[idealCol - dist] === null) {
+          assignedCol = idealCol - dist;
+          found = true;
+        } else if (idealCol + dist < totalCols && colSlots[idealCol + dist] === null) {
+          assignedCol = idealCol + dist;
+          found = true;
+        }
+        dist++;
+      }
+    }
+    colSlots[assignedCol] = item;
+  });
+
+  // Empty columns are for normal (1T) cards
+  const emptyCols = [];
+  colSlots.forEach((slot, colIdx) => {
+    if (slot === null) emptyCols.push(colIdx);
+  });
+
+  const half = emptyCols.length;
+  const topNormal = normalItems.slice(0, half);
+  const bottomNormal = normalItems.slice(half);
+
+  const placements = new Map();
+  colSlots.forEach((slot, colIdx) => {
+    if (slot) {
+      placements.set(slot.card.id, {
+        col: colIdx + 1,
+        row: 1,
+        spanRows: 2,
+        spanCols: 1
+      });
+    }
+  });
+
+  topNormal.forEach((item, idx) => {
+    placements.set(item.card.id, {
+      col: emptyCols[idx] + 1,
+      row: 1,
+      spanRows: 1,
+      spanCols: 1
+    });
+  });
+
+  bottomNormal.forEach((item, idx) => {
+    placements.set(item.card.id, {
+      col: emptyCols[idx] + 1,
+      row: 2,
+      spanRows: 1,
+      spanCols: 1
+    });
+  });
+
+  // Dynamic column widths: tall columns get slightly more width for spaciousness
+  const colWidths = colSlots.map(slot => {
+    if (slot) {
+      return numTall >= 2 ? '1.1fr' : '1.15fr';
+    }
+    return '1fr';
+  }).join(' ');
+
+  return { totalCols, colWidths, rows: '1fr 1fr', placements };
+}
+
 // Render dynamic grid with Move & Resize features
 function renderGrid() {
   const gridContainer = document.getElementById('timetable-grid');
@@ -229,17 +352,28 @@ function renderGrid() {
   gridContainer.className = `grid-container grid-${effectiveLayout}`;
   gridContainer.innerHTML = '';
 
+  const layout = computeCardLayout(state.cards, state.layoutMode);
+  gridContainer.style.gridTemplateColumns = layout.colWidths;
+  gridContainer.style.gridTemplateRows = layout.rows;
+  gridContainer.style.gridAutoFlow = 'row';
+
   state.cards.forEach((card, cardIndex) => {
     const cardEl = document.createElement('div');
-    cardEl.className = 'time-card';
+    cardEl.className = `time-card card-span-${card.spanRows || 1}`;
     cardEl.dataset.cardId = card.id;
 
     // Apply color border matching the pill color
     cardEl.style.borderColor = card.color || '#1d72b8';
 
-    // Apply Row & Column Span
-    cardEl.style.gridRow = `span ${card.spanRows || 1}`;
-    cardEl.style.gridColumn = `span ${card.spanCols || 1}`;
+    // Apply deterministic Row & Column Span
+    const placement = layout.placements.get(card.id);
+    if (placement) {
+      cardEl.style.gridColumn = `${placement.col} / span ${placement.spanCols}`;
+      cardEl.style.gridRow = `${placement.row} / span ${placement.spanRows}`;
+    } else {
+      cardEl.style.gridRow = `span ${card.spanRows || 1}`;
+      cardEl.style.gridColumn = `span ${card.spanCols || 1}`;
+    }
 
     // Drag & Drop event listeners on Card
     cardEl.addEventListener('dragover', (e) => handleCardDragOver(e, card.id, cardEl));

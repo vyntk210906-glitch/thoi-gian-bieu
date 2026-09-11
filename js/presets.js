@@ -142,6 +142,8 @@ const PRESET_6DAYS_NOTES = {
     PRESET_ORIGINAL.cards[1], // Thứ 3
     PRESET_ORIGINAL.cards[2], // Thứ 4
     PRESET_ORIGINAL.cards[3], // Thứ 5
+    PRESET_ORIGINAL.cards[4], // Thứ 6
+    PRESET_ORIGINAL.cards[5], // Thứ 7
     {
       id: "card-notes",
       title: "GHI CHÚ & MỤC TIÊU",
@@ -154,9 +156,7 @@ const PRESET_6DAYS_NOTES = {
         { id: "n3", time: "Tối Chủ Nhật", text: "Chuẩn bị đồng phục & sách vở cho tuần mới", icon: "🎒" },
         { id: "n4", time: "21h30 trở đi", text: "Nghỉ ngơi, ngủ đủ giấc", icon: "😴" }
       ]
-    },
-    PRESET_ORIGINAL.cards[4], // Thứ 6
-    PRESET_ORIGINAL.cards[5]  // Thứ 7
+    }
   ]
 };
 

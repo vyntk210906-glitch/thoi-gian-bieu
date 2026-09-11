@@ -92,7 +92,7 @@
       <button class="btn btn-outline btn-sm" onclick="openHeaderEditModal()" title="Sửa tiêu đề chính">
         ✏️ Tiêu Đề
       </button>
-      <button class="btn btn-outline btn-sm" onclick="if(confirm('Khôi phục lại dữ liệu mẫu ban đầu?')) { localStorage.removeItem('thoi_gian_bieu_state_v2'); loadSavedState(); renderApp(); }" title="Làm mới">
+      <button class="btn btn-outline btn-sm" onclick="if(confirm('Khôi phục lại dữ liệu mẫu ban đầu?')) { localStorage.removeItem('thoi_gian_bieu_state_v4'); localStorage.removeItem('thoi_gian_bieu_state_v2'); loadPreset('original', false); }" title="Làm mới">
         🔄 Khôi Phục
       </button>
     </div>
