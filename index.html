@@ -4,134 +4,184 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tạo & In Thời Gian Biểu Cho Bé</title>
-  <link rel="stylesheet" href="css/style.css?v=5.4">
+  <link rel="stylesheet" href="css/style.css?v=5.5">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
 </head>
 <body>
 
-  <!-- App Header / Action Navigation -->
+  <!-- Top Navigation & Command Header -->
   <header class="app-header no-print">
-    <div class="brand-title">
-      <span>🎨</span>
-      <span>Thời Gian Biểu Học Sinh</span>
+    <!-- Brand & Child Profile Cluster (Left) -->
+    <div class="header-left-cluster">
+      <div class="brand-title">
+        <span class="brand-logo-icon">🎨</span>
+        <span class="brand-text">Thời Gian Biểu</span>
+      </div>
+
+      <div class="header-v-divider"></div>
+
+      <!-- Child Profile Capsule -->
+      <div class="profile-capsule" id="profile-capsule" title="Hồ sơ thời gian biểu của bé">
+        <span class="profile-avatar-badge" id="profile-avatar-emoji">👦</span>
+        
+        <div class="profile-select-wrapper">
+          <select id="select-profile" class="select-profile-modern" onchange="switchProfile(this.value)" title="Chọn hồ sơ bé"></select>
+        </div>
+
+        <div class="profile-name-field" title="Nhấp để đổi tên bé nhanh">
+          <span class="profile-edit-icon">✏️</span>
+          <input type="text" id="input-student-name" class="input-student-name-modern" placeholder="Tên bé..." title="Nhập tên học sinh">
+        </div>
+
+        <div class="profile-actions-strip">
+          <button type="button" class="btn-profile-action btn-add-baby" onclick="openAddProfileModal()" title="Thêm hồ sơ bé mới">
+            <span>➕</span> Bé Mới
+          </button>
+          <button type="button" class="btn-profile-action" onclick="openCloneProfileModal()" title="Sao chép toàn bộ lịch sang bé khác">
+            <span>📋</span> Chép
+          </button>
+          <button type="button" class="btn-profile-action btn-del-baby" onclick="deleteCurrentProfile()" id="btn-del-profile" title="Xóa hồ sơ bé này">
+            🗑️
+          </button>
+        </div>
+      </div>
     </div>
 
-    <div class="header-actions">
-      <!-- Undo / Redo -->
-      <button class="btn btn-outline btn-sm" id="btn-undo" onclick="undo()" title="Hoàn tác thao tác trước (Ctrl+Z)" disabled>
-        <span>↩️</span> Hoàn tác
-      </button>
-      <button class="btn btn-outline btn-sm" id="btn-redo" onclick="redo()" title="Làm lại (Ctrl+Y)" disabled>
-        <span>↪️</span> Làm lại
-      </button>
+    <!-- History, Utilities & Primary Export CTAs (Right) -->
+    <div class="header-right-cluster">
+      <!-- Undo / Redo Segmented Group -->
+      <div class="segmented-history" title="Hoàn tác / Làm lại (Ctrl+Z / Ctrl+Y)">
+        <button class="btn-hist-step" id="btn-undo" onclick="undo()" title="Hoàn tác thao tác trước (Ctrl+Z)" disabled>
+          <span>↩️</span>
+        </button>
+        <button class="btn-hist-step" id="btn-redo" onclick="redo()" title="Làm lại thao tác vừa hủy (Ctrl+Y)" disabled>
+          <span>↪️</span>
+        </button>
+      </div>
 
-      <!-- Presets Selector -->
-      <select class="input-field" id="select-preset" onchange="loadPreset(this.value)" title="Chọn mẫu thời gian biểu">
-        <option value="original">⭐ Mẫu Chuẩn: 7 Ngày Tuần (T2 - CN)</option>
-        <option value="7days">📅 Mẫu: 7 Cột Dàn Đều (T2 - CN)</option>
-        <option value="notes">📝 Mẫu: 6 Ngày Học + Khối Ghi Chú (Tối đa 7 khối)</option>
-        <option value="5days">🏫 Mẫu: 5 Ngày Học Bán Trú (T2 - T6)</option>
-      </select>
-
-      <!-- Add Day / Block Button (Strict max 7) -->
-      <button class="btn btn-outline" id="btn-add-card" onclick="openAddCardModal()" title="Thêm một khối ngày hoặc ghi chú mới (tối đa 7 khối)">
-        <span>➕</span> Thêm Khối (7/7)
-      </button>
+      <!-- More Utilities Menu Dropdown -->
+      <div class="tools-dropdown-wrapper">
+        <button type="button" class="btn btn-tools-toggle" id="btn-tools-menu" onclick="toggleToolsMenu(event)" title="Các tiện ích và thiết lập dữ liệu">
+          <span>⚙️</span> Tiện ích <span class="tools-caret">▾</span>
+        </button>
+        <div class="tools-dropdown-menu" id="tools-dropdown-menu">
+          <button type="button" class="tools-menu-item" onclick="openHeaderEditModal(); closeToolsMenu();">
+            <span class="menu-item-icon">✏️</span>
+            <div class="menu-item-content">
+              <span class="menu-item-title">Sửa Tiêu Đề Bảng In</span>
+              <span class="menu-item-desc">Tùy chỉnh tiêu đề và tên trên trang</span>
+            </div>
+          </button>
+          <button type="button" class="tools-menu-item" onclick="backupProfilesJSON(); closeToolsMenu();">
+            <span class="menu-item-icon">💾</span>
+            <div class="menu-item-content">
+              <span class="menu-item-title">Sao Lưu Dữ Liệu (.json)</span>
+              <span class="menu-item-desc">Tải file lưu lịch của tất cả các bé</span>
+            </div>
+          </button>
+          <button type="button" class="tools-menu-item" onclick="triggerRestoreJSON(); closeToolsMenu();">
+            <span class="menu-item-icon">📂</span>
+            <div class="menu-item-content">
+              <span class="menu-item-title">Khôi Phục Dữ Liệu</span>
+              <span class="menu-item-desc">Nhập lịch từ file .json đã lưu</span>
+            </div>
+          </button>
+          <div class="tools-menu-divider"></div>
+          <button type="button" class="tools-menu-item item-danger" onclick="resetCurrentProfile(); closeToolsMenu();">
+            <span class="menu-item-icon">🔄</span>
+            <div class="menu-item-content">
+              <span class="menu-item-title">Đặt Lại Mẫu Chuẩn Cho Bé</span>
+              <span class="menu-item-desc">Khôi phục lịch về mặc định ban đầu</span>
+            </div>
+          </button>
+        </div>
+        <input type="file" id="file-import-json" accept=".json" style="display: none;" onchange="handleRestoreJSON(event)">
+      </div>
 
       <!-- Print Button (Vector A4) -->
       <button class="btn btn-primary" onclick="printTimetable()" title="In ra giấy A4 hoặc Lưu PDF vector sắc nét">
-        <span>🖨️</span> In Thời Gian Biểu
+        <span>🖨️</span> In Lịch (A4)
       </button>
 
       <!-- Direct PDF Download Button -->
       <button class="btn btn-success" onclick="exportPDF()" title="Tải trực tiếp file PDF về máy">
-        <span>📥</span> Xuất File PDF
+        <span>📥</span> Xuất PDF
       </button>
     </div>
   </header>
 
-  <!-- Secondary Settings Toolbar -->
-  <div class="toolbar no-print">
-    <!-- Child Profile Switcher Group -->
-    <div class="toolbar-group profile-selector-group">
-      <label for="select-profile">👶 Bé:</label>
-      <select id="select-profile" class="input-field select-profile" onchange="switchProfile(this.value)" title="Chọn hồ sơ bé"></select>
-      <button type="button" class="btn btn-outline btn-sm" onclick="openAddProfileModal()" title="Thêm hồ sơ bé mới">
-        <span>➕</span> Bé Mới
-      </button>
-      <button type="button" class="btn btn-outline btn-sm" onclick="openCloneProfileModal()" title="Sao chép toàn bộ lịch hiện tại sang bé khác">
-        <span>📋</span> Chép Lịch
-      </button>
-      <button type="button" class="btn btn-outline btn-sm" onclick="deleteCurrentProfile()" id="btn-del-profile" title="Xóa hồ sơ bé này" style="color: #ef4444;">
-        🗑️
+  <!-- Secondary Canvas Toolbar (Design & Layout Controls) -->
+  <div class="canvas-toolbar no-print">
+    <div class="canvas-controls-strip">
+      <!-- Presets Selector -->
+      <div class="control-item">
+        <label for="select-preset" class="control-label">⭐ Mẫu:</label>
+        <select class="select-modern" id="select-preset" onchange="loadPreset(this.value)" title="Chọn mẫu thời gian biểu">
+          <option value="original">Chuẩn 7 ngày (T2 - CN)</option>
+          <option value="7days">7 Cột dàn đều</option>
+          <option value="notes">6 Ngày + Khối ghi chú</option>
+          <option value="5days">5 Ngày học bán trú</option>
+        </select>
+      </div>
+
+      <!-- Layout Selector -->
+      <div class="control-item">
+        <label for="select-layout" class="control-label">🖼️ Bố cục:</label>
+        <select id="select-layout" class="select-modern" title="Chọn cách xếp các khối trên khổ A4">
+          <option value="photo">2 tầng (T2 cao, T3-CN đôi)</option>
+          <option value="7cols">7 Cột dàn đều</option>
+          <option value="photo5">5 Cột (T2 & Ghi chú cao)</option>
+          <option value="5cols">5 Cột dàn đều</option>
+          <option value="free">Lưới tự do căn chỉnh</option>
+        </select>
+      </div>
+
+      <!-- Color Palette Theme Selector -->
+      <div class="control-item">
+        <label for="select-theme" class="control-label">🌈 Màu sắc:</label>
+        <select id="select-theme" class="select-modern" title="Chọn bảng phối màu bảng in">
+          <option value="rainbow">Cầu vồng tươi vui</option>
+          <option value="sky">Xanh da trời</option>
+          <option value="candy">Kẹo hồng ngọt ngào</option>
+          <option value="mint">Vườn xanh tươi mát</option>
+        </select>
+      </div>
+
+      <!-- Mascot Theme Selector -->
+      <div class="control-item">
+        <label for="select-mascot" class="control-label">🎭 Linh vật:</label>
+        <select id="select-mascot" class="select-modern" title="Chọn nhân vật hoạt hình trang trí">
+          <option value="boys">Bé trai (Chuẩn mẫu)</option>
+          <option value="girls">Bé gái đáng yêu</option>
+          <option value="mixed">Bé trai & Bé gái</option>
+          <option value="none">Ẩn linh vật</option>
+        </select>
+      </div>
+
+      <!-- Add Day / Block Badge Button (Strict max 7) -->
+      <button class="btn-add-card-badge" id="btn-add-card" onclick="openAddCardModal()" title="Thêm một khối ngày hoặc ghi chú mới (tối đa 7 khối)">
+        <span>➕</span> Thêm Khối (7/7)
       </button>
     </div>
 
-    <div class="toolbar-group">
-      <label for="input-student-name">Tên bé:</label>
-      <input type="text" id="input-student-name" class="input-field" placeholder="Nhập tên học sinh..." style="width: 150px;">
-    </div>
-
-    <div class="toolbar-group">
-      <label for="select-theme">Tông màu:</label>
-      <select id="select-theme" class="input-field">
-        <option value="rainbow">🌈 Cầu vồng tươi vui</option>
-        <option value="sky">🌊 Xanh da trời mây biếc</option>
-        <option value="candy">🌸 Kẹo hồng ngọt ngào</option>
-        <option value="mint">🌿 Vườn xanh tươi mát</option>
-      </select>
-    </div>
-
-    <div class="toolbar-group">
-      <label for="select-layout">Bố cục in:</label>
-      <select id="select-layout" class="input-field">
-        <option value="photo">🖼️ Bố cục 2 tầng (Thứ 2 cao bên trái, T3 - CN xếp đôi)</option>
-        <option value="7cols">📅 7 Cột dàn đều (Thứ 2 đến Chủ Nhật)</option>
-        <option value="photo5">📋 Bố cục 5 Cột (Thứ 2 & Ghi Chú cao hai bên)</option>
-        <option value="5cols">🏫 5 Cột dàn đều (Thứ 2 đến Thứ 6)</option>
-        <option value="free">📐 Lưới tự do (Tự căn chỉnh)</option>
-      </select>
-    </div>
-
-    <div class="toolbar-group">
-      <label for="select-mascot">Linh vật:</label>
-      <select id="select-mascot" class="input-field">
-        <option value="boys">Bé trai (Chuẩn mẫu)</option>
-        <option value="girls">Bé gái đáng yêu</option>
-        <option value="mixed">Bé trai & Bé gái</option>
-        <option value="none">Ẩn linh vật</option>
-      </select>
-    </div>
-
-    <div class="toolbar-group" style="margin-left: auto;">
-      <!-- Backup & Restore JSON -->
-      <button class="btn btn-outline btn-sm" onclick="backupProfilesJSON()" title="Tải file .json sao lưu dữ liệu toàn bộ các bé">
-        <span>💾</span> Sao Lưu
-      </button>
-      <button class="btn btn-outline btn-sm" onclick="triggerRestoreJSON()" title="Khôi phục dữ liệu từ file .json máy khác">
-        <span>📂</span> Khôi Phục
-      </button>
-      <input type="file" id="file-import-json" accept=".json" style="display: none;" onchange="handleRestoreJSON(event)">
-
-      <button class="btn btn-outline btn-sm" onclick="openHeaderEditModal()" title="Sửa tiêu đề chính">
-        ✏️ Tiêu Đề
-      </button>
-      <button class="btn btn-outline btn-sm" onclick="resetCurrentProfile()" title="Khôi phục lại mẫu chuẩn cho bé này">
-        🔄 Làm Mới
+    <!-- Quick Tray Collapse / Expand Toggle -->
+    <div class="canvas-tray-toggle">
+      <button type="button" class="btn-tray-toggle" onclick="toggleQuickTray()" id="btn-toggle-tray" title="Bật/tắt khay hoạt động nhanh">
+        <span>⚡ Kéo Thả Nhanh</span> <span id="tray-arrow">▲</span>
       </button>
     </div>
   </div>
 
-  <!-- Quick Activities Drag-and-Drop Tray -->
+  <!-- Quick Activities Drag-and-Drop Tray (Dock) -->
   <div class="quick-tray no-print" id="quick-tray">
     <div class="quick-tray-header">
       <div class="quick-tray-title">
-        <span>⚡</span> <b>Khay Hoạt Động Nhanh:</b> Kéo thả vào bất kỳ ngày nào để thêm lịch ngay (hoặc bấm chọn)
+        <span class="quick-tray-badge">⚡ Gợi Ý</span>
+        <span class="quick-tray-hint">Kéo thả các hoạt động bên dưới vào bất kỳ ngày nào để xếp lịch ngay:</span>
       </div>
-      <button type="button" class="quick-tray-toggle" onclick="toggleQuickTray()" id="btn-toggle-tray">Thu gọn ▲</button>
     </div>
     <div class="quick-tray-chips" id="quick-tray-chips">
-      <!-- Injected by JS -->
+      <!-- Injected dynamically by JS -->
     </div>
   </div>
 
@@ -571,6 +621,6 @@
   <script src="js/html2pdf.bundle.min.js"></script>
   <script src="js/icons.js"></script>
   <script src="js/presets.js?v=5.0"></script>
-  <script src="js/app.js?v=5.4"></script>
+  <script src="js/app.js?v=5.5"></script>
 </body>
 </html>

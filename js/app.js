@@ -1094,15 +1094,15 @@ function buildQuickActivitiesTray() {
 
 function toggleQuickTray() {
   const tray = document.getElementById('quick-tray');
-  const btn = document.getElementById('btn-toggle-tray');
-  if (!tray || !btn) return;
+  const arrow = document.getElementById('tray-arrow');
+  if (!tray) return;
 
   if (tray.classList.contains('collapsed')) {
     tray.classList.remove('collapsed');
-    btn.textContent = 'Thu gọn ▲';
+    if (arrow) arrow.textContent = '▲';
   } else {
     tray.classList.add('collapsed');
-    btn.textContent = 'Mở khay ▼';
+    if (arrow) arrow.textContent = '▼';
   }
 }
 
@@ -2036,6 +2036,27 @@ function renderProfileSelector() {
   if (delBtn) {
     delBtn.style.display = (profilesState.profiles.length > 1) ? 'inline-flex' : 'none';
   }
+
+  const avatarBadge = document.getElementById('profile-avatar-emoji');
+  if (avatarBadge) {
+    if (state.mascotTheme === 'girls') avatarBadge.textContent = '👧';
+    else if (state.mascotTheme === 'mixed') avatarBadge.textContent = '👫';
+    else avatarBadge.textContent = '👦';
+  }
+}
+
+// -------------------------------------------------------------
+// Top Header Tools Dropdown Menu Handlers
+// -------------------------------------------------------------
+function toggleToolsMenu(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('tools-dropdown-menu');
+  if (menu) menu.classList.toggle('active');
+}
+
+function closeToolsMenu() {
+  const menu = document.getElementById('tools-dropdown-menu');
+  if (menu) menu.classList.remove('active');
 }
 
 function switchProfile(newId) {
@@ -2407,10 +2428,13 @@ function setupEventListeners() {
     });
   });
 
-  // Close card action menus when clicking outside
+  // Close card action menus and tools menu when clicking outside
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.card-header-tools')) {
       closeAllCardMenus();
+    }
+    if (!e.target.closest('.tools-dropdown-wrapper')) {
+      closeToolsMenu();
     }
   });
 
@@ -2419,6 +2443,7 @@ function setupEventListeners() {
     if (e.key === 'Escape') {
       document.querySelectorAll('.modal-backdrop.active').forEach(m => m.classList.remove('active'));
       closeAllCardMenus();
+      closeToolsMenu();
     }
 
     // Ctrl+Z (Undo) and Ctrl+Y / Ctrl+Shift+Z (Redo)
