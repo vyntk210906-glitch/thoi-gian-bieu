@@ -61,7 +61,7 @@
     <div class="toolbar-group">
       <label for="select-layout">Bố cục in:</label>
       <select id="select-layout" class="input-field">
-        <option value="photo">Chuẩn ảnh gốc 100% (Cột T2 <option value="2rows">2 Hàng (5 cột x 2 hàng - Chuẩn ảnh mẫu 100%)</option> T6 cao, ở giữa 2 tầng)</option>
+        <option value="photo">Chuẩn ảnh gốc 100% (5 Cột: T2 & T6 cao, giữa 2 tầng)</option>
         <option value="7cols">7 Cột dàn đều (Thứ 2 đến Chủ Nhật)</option>
         <option value="5cols">5 Cột dàn đều (Thứ 2 đến Thứ 6)</option>
         <option value="free">Lưới tự do (Tự căn chỉnh)</option>
@@ -97,10 +97,10 @@
         <div class="sheet-header">
           <!-- Left Mascot -->
           <div class="mascot-box" id="mascot-left">
-            <img class="mascot-img" src="assets/boy-left.svg" alt="Boy Student">
+            <img class="mascot-img" src="assets/boy_left_auth.png" alt="Boy Student">
           </div>
 
-          <!-- Central Cloud Banner -->
+          <!-- Central Capsule Banner -->
           <div class="title-banner" onclick="openHeaderEditModal()" title="Bấm vào đây để sửa Tiêu đề & Tên bé">
             <!-- Decorative Stars -->
             <img class="star-deco star-1" src="assets/stars.svg" alt="star">
@@ -109,21 +109,19 @@
             <img class="star-deco star-4" src="assets/stars.svg" alt="star">
 
             <div class="banner-main-title" id="banner-title-text">
-              THỜI GIAN BIỂU - <span class="student-name-highlight">Trịnh Xuân Khang</span>
+              <span class="title-prefix">THỜI GIAN BIỂU</span> <span class="title-sep">-</span> <span class="student-name-highlight">Trịnh Xuân Khang</span>
             </div>
-            <div class="banner-subtitle" id="banner-subtitle-text">
-              Kế hoạch sinh hoạt và học tập
-            </div>
+            <div class="banner-subtitle" id="banner-subtitle-text" style="display: none;"></div>
           </div>
 
           <!-- Right Mascot -->
           <div class="mascot-box" id="mascot-right">
-            <img class="mascot-img" src="assets/boy-right.svg" alt="Boy Reading">
+            <img class="mascot-img" src="assets/boy_right_auth.png" alt="Boy Reading">
           </div>
         </div>
 
         <!-- Grid Cards Container -->
-        <div class="grid-container grid-2rows" id="timetable-grid">
+        <div class="grid-container grid-photo" id="timetable-grid">
           <!-- Rendered dynamically by app.js -->
         </div>
 

@@ -6,7 +6,7 @@
 const PRESET_ORIGINAL = {
   title: "THỜI GIAN BIỂU",
   studentName: "Trịnh Xuân Khang",
-  subtitle: "Kế hoạch sinh hoạt và học tập",
+  subtitle: "",
   mascotTheme: "boys",
   layoutMode: "photo", // 'photo' (Exact replica: Col 1 & 5 tall, Cols 2-4 split 2 cards)
   themePalette: "rainbow",
@@ -15,7 +15,7 @@ const PRESET_ORIGINAL = {
     {
       id: "card-mon",
       title: "THỨ HAI",
-      color: "#2563eb",
+      color: "#1d72b8",
       gridCol: 1,
       gridSpan: 2,
       slots: [
@@ -36,7 +36,7 @@ const PRESET_ORIGINAL = {
     {
       id: "card-tue",
       title: "THỨ BA",
-      color: "#16a34a",
+      color: "#239546",
       gridCol: 2,
       gridRow: 1,
       slots: [
@@ -52,7 +52,7 @@ const PRESET_ORIGINAL = {
     {
       id: "card-fri-bot",
       title: "THỨ SÁU",
-      color: "#ea580c",
+      color: "#f16323",
       gridCol: 2,
       gridRow: 2,
       slots: [
@@ -68,7 +68,7 @@ const PRESET_ORIGINAL = {
     {
       id: "card-wed",
       title: "THỨ TƯ",
-      color: "#f59e0b",
+      color: "#e8a825",
       gridCol: 3,
       gridRow: 1,
       slots: [
@@ -84,7 +84,7 @@ const PRESET_ORIGINAL = {
     {
       id: "card-sat",
       title: "THỨ BẢY",
-      color: "#7c3aed",
+      color: "#7842a2",
       gridCol: 3,
       gridRow: 2,
       slots: [
@@ -99,7 +99,7 @@ const PRESET_ORIGINAL = {
     {
       id: "card-thu",
       title: "THỨ NĂM",
-      color: "#dc2626",
+      color: "#df2528",
       gridCol: 4,
       gridRow: 1,
       slots: [
@@ -116,7 +116,7 @@ const PRESET_ORIGINAL = {
     {
       id: "card-sun",
       title: "CHỦ NHẬT",
-      color: "#0d9488",
+      color: "#0b9195",
       gridCol: 4,
       gridRow: 2,
       slots: [
@@ -131,7 +131,7 @@ const PRESET_ORIGINAL = {
     {
       id: "card-fri-tall",
       title: "THỨ SÁU",
-      color: "#ea580c",
+      color: "#f16323",
       gridCol: 5,
       gridSpan: 2,
       slots: [

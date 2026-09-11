@@ -7,7 +7,7 @@
 let state = {
   title: "THỜI GIAN BIỂU",
   studentName: "Trịnh Xuân Khang",
-  subtitle: "Kế hoạch sinh hoạt và học tập",
+  subtitle: "",
   mascotTheme: "boys",
   layoutMode: "photo", // 'photo', '7cols', '5cols', 'free'
   fontTheme: "nunito",
@@ -117,22 +117,29 @@ function renderHeader() {
   const bannerTitle = document.getElementById('banner-title-text');
   const bannerSubtitle = document.getElementById('banner-subtitle-text');
 
-  bannerTitle.innerHTML = `${state.title} - <span class="student-name-highlight">${state.studentName}</span>`;
-  bannerSubtitle.textContent = state.subtitle || '';
+  bannerTitle.innerHTML = `<span class="title-prefix">${state.title}</span> <span class="title-sep">-</span> <span class="student-name-highlight">${state.studentName}</span>`;
+  if (bannerSubtitle) {
+    if (state.subtitle && state.subtitle.trim() !== '') {
+      bannerSubtitle.textContent = state.subtitle;
+      bannerSubtitle.style.display = 'block';
+    } else {
+      bannerSubtitle.style.display = 'none';
+    }
+  }
 
   if (state.mascotTheme === 'boys') {
-    mascotLeft.innerHTML = `<img class="mascot-img" src="assets/boy-left.svg" alt="Boy Student" />`;
-    mascotRight.innerHTML = `<img class="mascot-img" src="assets/boy-right.svg" alt="Boy Reading" />`;
+    mascotLeft.innerHTML = `<img class="mascot-img" src="assets/boy_left_auth.png" alt="Bé trai" />`;
+    mascotRight.innerHTML = `<img class="mascot-img" src="assets/boy_right_auth.png" alt="Bé trai" />`;
     mascotLeft.style.display = 'flex';
     mascotRight.style.display = 'flex';
   } else if (state.mascotTheme === 'girls') {
-    mascotLeft.innerHTML = `<img class="mascot-img" src="assets/girl-left.svg" alt="Girl Student" />`;
-    mascotRight.innerHTML = `<img class="mascot-img" src="assets/girl-right.svg" alt="Girl Reading" />`;
+    mascotLeft.innerHTML = `<img class="mascot-img" src="assets/girl-left.svg" alt="Bé gái" />`;
+    mascotRight.innerHTML = `<img class="mascot-img" src="assets/girl-right.svg" alt="Bé gái" />`;
     mascotLeft.style.display = 'flex';
     mascotRight.style.display = 'flex';
   } else if (state.mascotTheme === 'mixed') {
-    mascotLeft.innerHTML = `<img class="mascot-img" src="assets/boy-left.svg" alt="Boy Student" />`;
-    mascotRight.innerHTML = `<img class="mascot-img" src="assets/girl-right.svg" alt="Girl Reading" />`;
+    mascotLeft.innerHTML = `<img class="mascot-img" src="assets/boy_left_auth.png" alt="Bé trai" />`;
+    mascotRight.innerHTML = `<img class="mascot-img" src="assets/girl-right.svg" alt="Bé gái" />`;
     mascotLeft.style.display = 'flex';
     mascotRight.style.display = 'flex';
   } else {
