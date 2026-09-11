@@ -339,7 +339,7 @@ function computeCardLayout(cards, layoutMode) {
     return '1fr';
   }).join(' ');
 
-  return { totalCols, colWidths, rows: '1fr 1fr', placements };
+  return { totalCols, colWidths, rows: 'minmax(0, 1fr) minmax(0, 1fr)', placements };
 }
 
 // Render dynamic grid with Move & Resize features
@@ -358,8 +358,19 @@ function renderGrid() {
   gridContainer.style.gridAutoFlow = 'row';
 
   state.cards.forEach((card, cardIndex) => {
+    const is1T = (card.spanRows || 1) === 1;
+    const is2T = (card.spanRows || 1) === 2;
+    const slotCount = card.slots ? card.slots.length : 0;
+    
+    let densityClass = '';
+    if (is1T && slotCount >= 7) {
+      densityClass = 'slots-dense';
+    } else if (is2T && slotCount <= 6) {
+      densityClass = 'slots-spacious';
+    }
+
     const cardEl = document.createElement('div');
-    cardEl.className = `time-card card-span-${card.spanRows || 1}`;
+    cardEl.className = `time-card card-span-${card.spanRows || 1} ${densityClass}`.trim();
     cardEl.dataset.cardId = card.id;
 
     // Apply color border matching the pill color

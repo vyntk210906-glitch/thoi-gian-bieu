@@ -267,18 +267,22 @@ body {
   transition: transform 0.2s ease;
 }
 
-/* Cute Illustrated Background Sheet */
+/* Cute Illustrated Background Sheet (Strict A4 Landscape: 1080px x 764px) */
 .timetable-sheet {
   width: 1080px;
-  min-height: 750px;
+  height: 764px;
+  max-height: 764px;
+  min-height: 764px;
+  aspect-ratio: 297 / 210;
   background: #ddf3fe url('../assets/cute_stationery_bg.svg') no-repeat center center;
   background-size: 100% 100%;
   border-radius: 28px;
-  padding: 12px 18px 14px;
+  padding: 10px 16px 12px;
   position: relative;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Header Banner Section: Grid 1.05fr (Col 1) / 3fr (Cols 2-4) / 1.05fr (Col 5) */
@@ -405,21 +409,24 @@ body {
   position: relative;
   z-index: 2;
   flex: 1;
+  min-height: 0;
+  height: 100%;
   display: grid;
-  gap: 10px;
+  gap: 8px;
   grid-auto-flow: row;
+  overflow: hidden;
 }
 
 /* 4 Columns 2-Tier Mode (Default Fallback) */
 .grid-photo {
   grid-template-columns: 1.15fr 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 /* 5 Columns 2-Tier Mode (Thứ 2 & Ghi Chú full height on edges, T3-T7 stacked in middle) */
 .grid-photo5 {
   grid-template-columns: 1.1fr 1fr 1fr 1fr 1.1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 /* Better vertical rhythm for full-height (2-tier) cards */
@@ -427,15 +434,16 @@ body {
 .grid-photo .time-card:first-child .card-slots,
 .grid-photo5 .time-card:first-child .card-slots,
 .grid-photo5 .time-card:last-child .card-slots {
-  gap: 4px;
+  gap: 8px;
+  padding-top: 3px;
 }
 
 .time-card.card-span-2 .section-divider-label,
 .grid-photo .time-card:first-child .section-divider-label,
 .grid-photo5 .time-card:first-child .section-divider-label,
 .grid-photo5 .time-card:last-child .section-divider-label {
-  margin-top: 8px;
-  margin-bottom: 3px;
+  margin-top: 6px;
+  margin-bottom: 2px;
 }
 
 /* 7 Columns Standard Mode */
@@ -461,11 +469,14 @@ body {
   background: #ffffff;
   border: 2.5px solid #cbd5e1;
   border-radius: 18px;
-  padding: 7px 8px 6px;
+  padding: 6px 7px 5px;
   display: flex;
   flex-direction: column;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
   position: relative;
+  min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
   transition: all 0.15s ease;
 }
 
@@ -616,9 +627,52 @@ body {
 /* Card Content Slot Items */
 .card-slots {
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 2.5px;
+}
+
+/* Dense styling for cards with many activities in 1 tier (prevents blowout) */
+.time-card.slots-dense .card-slots {
+  gap: 1.5px;
+}
+.time-card.slots-dense .slot-item {
+  padding: 1px 2px;
+}
+.time-card.slots-dense .slot-time {
+  font-size: 0.72rem;
+}
+.time-card.slots-dense .slot-text {
+  font-size: 0.74rem;
+  line-height: 1.15;
+}
+.time-card.slots-dense .slot-icon-badge {
+  font-size: 0.85rem;
+}
+.time-card.slots-dense .section-divider-label {
+  margin-top: 2px;
+  margin-bottom: 1px;
+  font-size: 0.76rem;
+}
+
+/* Spacious styling for 2-tier cards */
+.time-card.slots-spacious .card-slots {
+  gap: 8px;
+  padding-top: 3px;
+}
+.time-card.slots-spacious .slot-item {
+  padding: 4px 6px;
+}
+
+/* Clean slim scrollbar for web view */
+.card-slots::-webkit-scrollbar {
+  width: 3px;
+}
+.card-slots::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
 }
 
 .section-divider-label {
