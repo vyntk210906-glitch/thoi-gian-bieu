@@ -105,11 +105,16 @@ function updateUndoRedoButtons() {
   if (btnRedo) btnRedo.disabled = redoStack.length === 0;
 }
 
+const MAX_CARDS = 7;
+
 function loadSavedState() {
-  const saved = localStorage.getItem('thoi_gian_bieu_state_v3');
+  const saved = localStorage.getItem('thoi_gian_bieu_state_v4');
   if (saved) {
     try {
       state = JSON.parse(saved);
+      if (state.cards && state.cards.length > MAX_CARDS) {
+        state.cards = state.cards.slice(0, MAX_CARDS);
+      }
       if (!state.layoutMode || state.layoutMode === '2rows') state.layoutMode = 'photo';
       if (!state.themePalette) state.themePalette = 'rainbow';
       return;
@@ -121,7 +126,10 @@ function loadSavedState() {
 }
 
 function saveState() {
-  localStorage.setItem('thoi_gian_bieu_state_v3', JSON.stringify(state));
+  if (state.cards && state.cards.length > MAX_CARDS) {
+    state.cards = state.cards.slice(0, MAX_CARDS);
+  }
+  localStorage.setItem('thoi_gian_bieu_state_v4', JSON.stringify(state));
 }
 
 function loadPreset(name, recordHistory = true) {
@@ -130,6 +138,8 @@ function loadPreset(name, recordHistory = true) {
     state = JSON.parse(JSON.stringify(window.TimetablePresets.PRESET_ORIGINAL));
   } else if (name === '7days') {
     state = JSON.parse(JSON.stringify(window.TimetablePresets.PRESET_STANDARD_7DAYS));
+  } else if (name === 'notes') {
+    state = JSON.parse(JSON.stringify(window.TimetablePresets.PRESET_6DAYS_NOTES));
   } else if (name === '5days') {
     state = JSON.parse(JSON.stringify(window.TimetablePresets.PRESET_SCHOOL_5DAYS));
   }
@@ -151,6 +161,16 @@ function renderApp() {
 
   const themeSelect = document.getElementById('select-theme');
   if (themeSelect) themeSelect.value = state.themePalette || 'rainbow';
+
+  const btnAddCard = document.getElementById('btn-add-card');
+  if (btnAddCard) {
+    btnAddCard.innerHTML = `<span>➕</span> Thêm Khối (${state.cards.length}/${MAX_CARDS})`;
+    if (state.cards.length >= MAX_CARDS) {
+      btnAddCard.title = `Đã đạt tối đa ${MAX_CARDS} khối (T2 - CN). Bấm xóa bớt 1 khối nếu muốn thêm khối mới.`;
+    } else {
+      btnAddCard.title = `Thêm một khối ngày hoặc ghi chú mới (Hiện có ${state.cards.length}/${MAX_CARDS} khối)`;
+    }
+  }
 
   const sheet = document.getElementById('timetable-sheet');
   if (sheet) {
@@ -202,7 +222,11 @@ function renderHeader() {
 // Render dynamic grid with Move & Resize features
 function renderGrid() {
   const gridContainer = document.getElementById('timetable-grid');
-  gridContainer.className = `grid-container grid-${state.layoutMode}`;
+  let effectiveLayout = state.layoutMode;
+  if (state.layoutMode === 'photo' && state.cards.some(c => c.id.includes('notes') || c.title.toLowerCase().includes('ghi chú'))) {
+    effectiveLayout = 'photo5';
+  }
+  gridContainer.className = `grid-container grid-${effectiveLayout}`;
   gridContainer.innerHTML = '';
 
   state.cards.forEach((card, cardIndex) => {
@@ -514,7 +538,7 @@ function deleteCard(cardId) {
     state.cards = state.cards.filter(c => c.id !== cardId);
     saveState();
     renderApp();
-    showToast(`Đã xóa khối "${card.title}". Bấm "Hoàn tác" để lấy lại! 🗑️`);
+    showToast(`Đã xóa khối "${card.title}" (${state.cards.length}/${MAX_CARDS} khối). Bấm "Hoàn tác" để lấy lại! ↩️`);
   }
 }
 
@@ -842,8 +866,12 @@ function handleSlotTextInput(text) {
 // Card / Block Management (Add / Edit / Duplicate)
 // -------------------------------------------------------------
 function openAddCardModal() {
+  if (state.cards.length >= MAX_CARDS) {
+    showToast(`⚠️ Bảng đã đạt tối đa ${MAX_CARDS} khối! Bạn hãy xóa bớt 1 khối trước khi thêm mới. ✨`, 3500);
+    return;
+  }
   editingCardId = null;
-  document.getElementById('card-modal-title').textContent = 'Thêm Khối Mới';
+  document.getElementById('card-modal-title').textContent = `Thêm Khối Mới (${state.cards.length}/${MAX_CARDS})`;
   document.getElementById('card-title-input').value = '';
   document.getElementById('card-color-input').value = PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)];
   renderColorSwatches();
@@ -890,6 +918,12 @@ function saveCard() {
     return;
   }
 
+  if (!editingCardId && state.cards.length >= MAX_CARDS) {
+    showToast(`⚠️ Bảng đã đạt tối đa ${MAX_CARDS} khối! Bạn hãy xóa bớt 1 khối trước khi thêm mới. ✨`, 3500);
+    closeModal('modal-card');
+    return;
+  }
+
   pushHistory();
 
   if (editingCardId) {
@@ -900,13 +934,20 @@ function saveCard() {
       card.spanRows = spanRows;
     }
   } else {
+    // If it's a note or goal block, pre-populate helpful slots
+    const isNotes = title.toLowerCase().includes('ghi chú') || title.toLowerCase().includes('mục tiêu') || title.toLowerCase().includes('lời dặn');
+    const defaultSlots = isNotes ? [
+      { id: 'n_' + Date.now() + '_1', time: 'Mục tiêu tuần', text: 'Hoàn thành bài tập trước 21h00', icon: '🎯', section: '' },
+      { id: 'n_' + Date.now() + '_2', time: 'Lời dặn bố mẹ', text: 'Uống đủ nước, tập thể dục đều đặn', icon: '💧', section: 'Lưu ý:' }
+    ] : [];
+
     state.cards.push({
       id: 'card_' + Date.now(),
       title: title,
       color: color,
       spanRows: spanRows,
       spanCols: 1,
-      slots: []
+      slots: defaultSlots
     });
   }
 

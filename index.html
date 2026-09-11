@@ -27,14 +27,15 @@
 
       <!-- Presets Selector -->
       <select class="input-field" id="select-preset" onchange="loadPreset(this.value)" title="Chọn mẫu thời gian biểu">
-        <option value="original">📋 Mẫu: Chuẩn 7 Ngày + Ghi Chú</option>
-        <option value="7days">📅 Mẫu: 7 Ngày Dàn Đều (T2 - CN)</option>
-        <option value="5days">🏫 Mẫu: 5 Ngày Học (T2 - T6)</option>
+        <option value="original">⭐ Mẫu Chuẩn: 7 Ngày Tuần (T2 - CN)</option>
+        <option value="7days">📅 Mẫu: 7 Cột Dàn Đều (T2 - CN)</option>
+        <option value="notes">📝 Mẫu: 6 Ngày Học + Khối Ghi Chú (Tối đa 7 khối)</option>
+        <option value="5days">🏫 Mẫu: 5 Ngày Học Bán Trú (T2 - T6)</option>
       </select>
 
-      <!-- Add Day / Block Button -->
-      <button class="btn btn-outline" onclick="openAddCardModal()" title="Thêm một khối ngày hoặc ghi chú mới">
-        <span>➕</span> Thêm Khối Mới
+      <!-- Add Day / Block Button (Strict max 7) -->
+      <button class="btn btn-outline" id="btn-add-card" onclick="openAddCardModal()" title="Thêm một khối ngày hoặc ghi chú mới (tối đa 7 khối)">
+        <span>➕</span> Thêm Khối (7/7)
       </button>
 
       <!-- Print Button (Vector A4) -->
@@ -69,10 +70,11 @@
     <div class="toolbar-group">
       <label for="select-layout">Bố cục in:</label>
       <select id="select-layout" class="input-field">
-        <option value="photo">Chuẩn 5 Cột linh hoạt (T2 & Ghi Chú cao, T3-CN 2 tầng)</option>
-        <option value="7cols">7 Cột dàn đều (Thứ 2 đến Chủ Nhật)</option>
-        <option value="5cols">5 Cột dàn đều (Thứ 2 đến Thứ 6)</option>
-        <option value="free">Lưới tự do (Tự căn chỉnh)</option>
+        <option value="photo">🖼️ Bố cục 2 tầng (Thứ 2 cao bên trái, T3 - CN xếp đôi)</option>
+        <option value="7cols">📅 7 Cột dàn đều (Thứ 2 đến Chủ Nhật)</option>
+        <option value="photo5">📋 Bố cục 5 Cột (Thứ 2 & Ghi Chú cao hai bên)</option>
+        <option value="5cols">🏫 5 Cột dàn đều (Thứ 2 đến Thứ 6)</option>
+        <option value="free">📐 Lưới tự do (Tự căn chỉnh)</option>
       </select>
     </div>
 
@@ -304,6 +306,9 @@
             <button type="button" class="time-chip" onclick="setQuickCardTitle('CHỦ NHẬT', '#0b9195')">CN</button>
             <button type="button" class="time-chip" onclick="setQuickCardTitle('GHI CHÚ & MỤC TIÊU', '#ea580c')">Ghi chú</button>
             <button type="button" class="time-chip" onclick="setQuickCardTitle('LỜI DẶN CỦA MẸ', '#db2777')">Lời dặn</button>
+          </div>
+          <div style="font-size: 0.75rem; color: #64748b; margin-top: 6px;">
+            💡 <i>Quy định: Bảng in chứa tối đa 7 khối (để đảm bảo chữ to rõ, chuẩn đẹp khi in A4).</i>
           </div>
         </div>
 

@@ -8,7 +8,7 @@ const PRESET_ORIGINAL = {
   studentName: "Trịnh Xuân Khang",
   subtitle: "",
   mascotTheme: "boys",
-  layoutMode: "photo", // 'photo' (5 Cột linh hoạt, T2 & Ghi Chú cao, các ngày ở giữa 2 tầng)
+  layoutMode: "photo", // 4 Cột 2 tầng (T2 cao bên trái, T3-CN xếp đôi bên phải)
   themePalette: "rainbow",
   cards: [
     // --- CỘT 1: THỨ HAI (Cao toàn bộ cột, 2 tầng) ---
@@ -81,21 +81,6 @@ const PRESET_ORIGINAL = {
       ]
     },
 
-    // --- CỘT 5: GHI CHÚ & MỤC TIÊU (Cao toàn bộ cột, 2 tầng) ---
-    {
-      id: "card-notes",
-      title: "GHI CHÚ & MỤC TIÊU",
-      color: "#ea580c",
-      spanRows: 2,
-      spanCols: 1,
-      slots: [
-        { id: "n1", time: "Mục tiêu tuần", text: "Hoàn thành bài tập trước 21h00", icon: "🎯" },
-        { id: "n2", time: "Lời dặn bố mẹ", text: "Uống đủ nước, tập thể dục đều đặn", icon: "💧", section: "Lưu ý:" },
-        { id: "n3", time: "Tối Chủ Nhật", text: "Chuẩn bị đồng phục & sách vở cho tuần mới", icon: "🎒" },
-        { id: "n4", time: "21h30 trở đi", text: "Nghỉ ngơi, ngủ đủ giấc", icon: "😴" }
-      ]
-    },
-
     // --- CỘT 2 - DƯỚI: THỨ SÁU (1 tầng) ---
     {
       id: "card-fri",
@@ -141,6 +126,37 @@ const PRESET_ORIGINAL = {
         { id: "sn4", time: "20h00 trở đi", text: "Về nhà, ăn tối nghỉ ngơi", icon: "🍽️" }
       ]
     }
+  ]
+};
+
+// Mẫu tùy chọn có khối Ghi Chú & Mục Tiêu (Tổng đúng 7 khối: T2-T7 + Ghi Chú)
+const PRESET_6DAYS_NOTES = {
+  title: "THỜI GIAN BIỂU & GHI CHÚ",
+  studentName: "Trịnh Xuân Khang",
+  subtitle: "Kế hoạch tuần & Mục tiêu học tập",
+  mascotTheme: "boys",
+  layoutMode: "photo5",
+  themePalette: "rainbow",
+  cards: [
+    PRESET_ORIGINAL.cards[0], // Thứ 2 (spanRows: 2)
+    PRESET_ORIGINAL.cards[1], // Thứ 3
+    PRESET_ORIGINAL.cards[2], // Thứ 4
+    PRESET_ORIGINAL.cards[3], // Thứ 5
+    {
+      id: "card-notes",
+      title: "GHI CHÚ & MỤC TIÊU",
+      color: "#ea580c",
+      spanRows: 2,
+      spanCols: 1,
+      slots: [
+        { id: "n1", time: "Mục tiêu tuần", text: "Hoàn thành bài tập trước 21h00", icon: "🎯" },
+        { id: "n2", time: "Lời dặn bố mẹ", text: "Uống đủ nước, tập thể dục đều đặn", icon: "💧", section: "Lưu ý:" },
+        { id: "n3", time: "Tối Chủ Nhật", text: "Chuẩn bị đồng phục & sách vở cho tuần mới", icon: "🎒" },
+        { id: "n4", time: "21h30 trở đi", text: "Nghỉ ngơi, ngủ đủ giấc", icon: "😴" }
+      ]
+    },
+    PRESET_ORIGINAL.cards[4], // Thứ 6
+    PRESET_ORIGINAL.cards[5]  // Thứ 7
   ]
 };
 
@@ -280,5 +296,6 @@ const PRESET_SCHOOL_5DAYS = {
 window.TimetablePresets = {
   PRESET_ORIGINAL,
   PRESET_STANDARD_7DAYS,
+  PRESET_6DAYS_NOTES,
   PRESET_SCHOOL_5DAYS
 };
