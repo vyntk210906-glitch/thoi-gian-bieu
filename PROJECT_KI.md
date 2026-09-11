@@ -19,15 +19,25 @@
      - **Giải pháp xử lý triệt để**:
        - **Khóa cứng tỉ lệ A4 Landscape chuẩn**: `.timetable-sheet` được gán kích thước cố định `width: 1080px; height: 764px; max-height: 764px; min-height: 764px; aspect-ratio: 297 / 210; overflow: hidden;`.
        - **Khóa cứng tỉ lệ phân bổ hàng 50% / 50%**: Lưới sử dụng `grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);` và `overflow: hidden;`. Ngăn chặn hoàn toàn việc một khối có nhiều hoạt động làm phình to một hàng hay làm lệch hàng còn lại.
-       - **Tự động co giãn nội dung thông minh (`slots-dense` / `slots-spacious`)**:
-         - Khối 1 tầng có từ 7 hoạt động trở lên (như Thứ 2 chứa 10 hoạt động) tự động nhận class `slots-dense`: tự động thu nhỏ padding (`1px 2px`), cỡ chữ (`0.72rem - 0.74rem`), gap (`1.5px`), giúp trọn vẹn 10 hoạt động nằm gọn gàng bên trong chiều cao 1 tầng mà không hề tràn ra ngoài hay đội hàng.
-         - Khối 2 tầng có ít hoạt động (như Thứ 7 có 4 hoạt động) tự động nhận class `slots-spacious`: giãn đều khoảng cách (`gap: 8px; padding: 4px 6px;`) để bố cục luôn cân đối, thanh thoát.
-         - Tích hợp thanh cuộn siêu mỏng 3px tự nhiên cho chế độ xem web, tuyệt đối không in ra bản PDF.
-       - **Thuật toán giải vị trí động `computeCardLayout(cards, layoutMode)`**:
-         - Phân bổ cột độc quyền cho các khối 2 tầng dựa trên chỉ số vị trí tương đối trong tuần.
-         - Ghép cặp các khối 1 tầng vào các cột còn lại: Hàng trên (T2, T3, T4), Hàng dưới (T5, T6, CN), Cột 4 (T7 cao 2 tầng).
-         - Cả 2 hàng luôn cao bằng nhau chằn chặn 320px, khoảng đệm đáy đạt chuẩn 12px-16px, không chạm viền.
-       - **Cache-busting**: Thêm query string `?v=5.0` vào các file CSS/JS trong `index.html` để đảm bảo trình duyệt người dùng luôn tải phiên bản mới nhất, không bị lưu cache cũ.
+       - **Hệ thống Co Giãn Chữ & Loại Bỏ Triệt Để Thanh Cuộn (Zero Scrollbar & Dynamic Copy-Fitting)**:
+         - **Nguyên nhân gây ra thanh cuộn trước đây**:
+           - Trong giao diện web trước đây, `.card-slots` được gán `overflow-y: auto;`. Khi một ngày có nhiều hoạt động (như Thứ 2 có 10 hoạt động + 2 nhãn phân buổi "Chiều", "Tối"), hoặc Thứ 5 (6 hoạt động), Thứ 6 (5 hoạt động + 2 nhãn), tổng chiều cao thực tế `scrollHeight` (251px - 484px) vượt quá chiều cao có sẵn của ô 1 tầng (`clientHeight` ~245px - 255px).
+           - Trình duyệt tự động hiển thị thanh cuộn dọc (scrollbar). Vì đây là trang web dựng bản in A4, người dùng không thể "cuộn" trên giấy in, dẫn đến việc toàn bộ hoạt động bên dưới thanh cuộn bị mất / che khuất hoàn toàn khi in.
+           - Đồng thời, CSS cũ chứa các selector tĩnh `:first-child` và `:last-child` áp đặt cứng `gap: 8px` lên Thứ 2 ngay cả khi Thứ 2 đã được chuyển về 1 tầng; và bản in `@media print` có các quy tắc `!important` cố định cỡ chữ `0.82rem !important` làm triệt tiêu khả năng co giãn chữ.
+         - **Giải pháp loại bỏ scrollbar và bảo đảm 100% hiển thị trên bản in (v5.1)**:
+           - **Xóa bỏ hoàn toàn thanh cuộn**: `.card-slots` được đặt `overflow: hidden;` trên màn hình (tuyệt đối không xuất hiện thanh cuộn dù ở bất kỳ độ phân giải nào) và `overflow: visible !important;` trên bản in.
+           - **Hệ thống 6 cấp độ mật độ tự thích ứng (6 Density Tiers)**: Dựa trên tổng số mục (`slots.length + số nhãn phân buổi`) và chiều cao ô (`spanRows: 1` hay `2` / bố cục 1 hàng):
+             1. `density-spacious` (Khối 2 tầng / toàn chiều cao ít hoạt động $\le 7$): font `0.92rem`, icon `1.15rem`, gap `5px`, padding `3.5px 5px`.
+             2. `density-normal` (Khối 1 tầng $\le 4$ mục, hoặc 2 tầng 8-10 mục): font `0.84rem`, icon `1.05rem`, gap `4px`, padding `2px 3px`.
+             3. `density-moderate` (Khối 1 tầng 5-6 mục, hoặc 2 tầng 11-13 mục): font `0.77rem`, icon `0.95rem`, gap `3.5px`, padding `1.5px 2px`.
+             4. `density-compact` (Khối 1 tầng 7-8 mục): font `0.72rem`, icon `0.86rem`, gap `3px`, padding `1px 2px`.
+             5. `density-dense` (Khối 1 tầng 9-11 mục): font `0.66rem`, icon `0.78rem`, gap `2.5px`, padding `0.5px 1.5px`.
+             6. `density-ultra` (Khối 1 tầng $\ge 12$ mục): font `0.60rem`, icon `0.70rem`, gap `2px`, padding `0.2px 1px`.
+           - **Thuật toán Tự động Vi điều chỉnh Copy-Fitting (`autoFitCardSlots`)**:
+             - Đo đạc chính xác theo thời gian thực: Nếu `scrollHeight > clientHeight + 0.5px`, hàm tự động hạ biến tỉ lệ `--auto-scale` (từ `1.0` xuống `0.97`, `0.94`...) cho đến khi $scrollHeight \le clientHeight$.
+             - Tự động kích hoạt khi người dùng gõ sửa chữ trực tiếp (`handleSlotTextInlineInput`), khi thêm/xóa/đổi kích thước ô, khi thay đổi kích thước cửa sổ (`resize`), và trước khi in hoặc xuất file PDF.
+             - Đảm bảo 100% nội dung luôn nhìn thấy trọn vẹn, không bị scroll, không bị che khuất và luôn nằm gọn trong 1 trang A4 Landscape duy nhất.
+       - **Cache-busting**: Thêm query string `?v=5.1` vào các file CSS/JS trong `index.html` để đảm bảo trình duyệt người dùng luôn tải phiên bản mới nhất, không bị lưu cache cũ.
   3. **Tối ưu Kích thước Chữ (Font Size) Khổ in A4**:
      - Tăng kích thước font chữ toàn diện để bé và phụ huynh dễ dàng quan sát khi dán tường hoặc để bàn:
        - Tiêu đề ngày (`.card-header-pill`): tăng lên `1.02rem` (màn hình) và `0.95rem` (bản in), chiều cao viên thuốc `32px`.
