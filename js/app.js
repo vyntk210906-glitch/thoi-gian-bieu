@@ -429,10 +429,18 @@ function renderGrid() {
     const is2T = (card.spanRows || 1) === 2;
     const isFullHeight = is2T || isSingleRowLayout;
     
-    // Count both slots and section divider labels
+    // Count both slots and distinct section divider labels
     const slotsList = card.slots || [];
-    const sectionCount = slotsList.filter(s => s.section && s.section.trim() !== '').length;
-    const totalItems = slotsList.length + sectionCount;
+    let distinctSections = 0;
+    let prevSec = '';
+    slotsList.forEach(s => {
+      const sec = (s.section || '').trim();
+      if (sec && sec !== prevSec) {
+        distinctSections++;
+        prevSec = sec;
+      }
+    });
+    const totalItems = slotsList.length + distinctSections;
     
     let densityClass = 'density-normal';
     let slotLayoutMode = 'layout-vertical';
@@ -506,6 +514,7 @@ function renderGrid() {
       <button class="card-action-btn resize-btn" title="Đổi chiều rộng: 1 cột / 2 cột" onclick="toggleCardCols('${card.id}')">
         ${card.spanCols === 2 ? '↔ 1C' : '↔ 2C'}
       </button>
+      <button class="card-action-btn" title="Tự động sắp xếp hoạt động theo thứ tự Sáng - Chiều - Tối" onclick="sortAndRenderCard('${card.id}')">⏰</button>
       <button class="card-action-btn" title="Sao chép toàn bộ lịch ngày này" onclick="openDuplicateCardModal('${card.id}')">📋</button>
       <button class="card-action-btn" title="Đổi màu & Tên" onclick="openEditCardModal('${card.id}')">🎨</button>
       <button class="card-action-btn btn-del" title="Xóa khối này" onclick="deleteCard('${card.id}')">🗑️</button>
@@ -536,13 +545,31 @@ function renderGrid() {
     slotsContainer.className = 'card-slots';
     slotsContainer.dataset.cardId = card.id;
 
+    let lastSection = '';
     card.slots.forEach((slot, slotIndex) => {
-      // Optional Section Label (e.g. Chiều:, Tối:)
-      if (slot.section) {
+      // Optional Section Label (e.g. Chiều:, Tối:) - Deduplicated & Inline Editable
+      const sec = (slot.section || '').trim();
+      if (sec && sec !== lastSection) {
         const sectionLabel = document.createElement('div');
         sectionLabel.className = 'section-divider-label';
-        sectionLabel.textContent = slot.section;
+        sectionLabel.textContent = sec;
+        sectionLabel.contentEditable = 'true';
+        sectionLabel.spellcheck = false;
+        sectionLabel.title = 'Nhấp trực tiếp để sửa tên buổi (hoặc xóa chữ để ẩn)';
+        sectionLabel.onblur = () => {
+          const newText = sectionLabel.innerText.trim();
+          slot.section = newText;
+          saveState();
+          renderApp();
+        };
+        sectionLabel.onkeydown = (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            sectionLabel.blur();
+          }
+        };
         slotsContainer.appendChild(sectionLabel);
+        lastSection = sec;
       }
 
       const slotEl = document.createElement('div');
@@ -847,6 +874,89 @@ function updateCardTitleInline(cardId, newTitle) {
   }
 }
 
+// -------------------------------------------------------------
+// Time Parsing & Chronological Card Sorting
+// -------------------------------------------------------------
+function parseTimeToMinutes(timeStr) {
+  if (!timeStr) return 9999;
+  const str = timeStr.trim().toLowerCase();
+  
+  // Match HHhMM or HH:MM or HHh
+  const match = str.match(/(\d{1,2})\s*[:hH]\s*(\d{2})?/);
+  if (match) {
+    const hours = parseInt(match[1], 10);
+    const mins = match[2] ? parseInt(match[2], 10) : 0;
+    return hours * 60 + mins;
+  }
+  
+  // Keyword fallbacks
+  if (str.includes('sáng')) return 7 * 60;
+  if (str.includes('trưa')) return 12 * 60;
+  if (str.includes('chiều')) return 14 * 60;
+  if (str.includes('tối')) return 19 * 60;
+  
+  return 9999;
+}
+
+function sortCardSlotsByTime(card) {
+  if (!card || !Array.isArray(card.slots) || card.slots.length <= 1) return;
+
+  // 1. Sort slots chronologically by time
+  card.slots.sort((a, b) => parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time));
+
+  // 2. Identify sessions present based on time
+  let hasMorning = false;
+  let hasAfternoon = false;
+  let hasEvening = false;
+
+  card.slots.forEach(slot => {
+    const mins = parseTimeToMinutes(slot.time);
+    if (mins < 12 * 60) hasMorning = true;
+    else if (mins < 17 * 60) hasAfternoon = true;
+    else hasEvening = true;
+  });
+
+  let assignedAfternoonHeader = false;
+  let assignedEveningHeader = false;
+
+  card.slots.forEach(slot => {
+    const mins = parseTimeToMinutes(slot.time);
+
+    if (mins < 12 * 60) {
+      // Morning slot: clean accidental afternoon/evening labels
+      if (slot.section === 'Chiều:' || slot.section === 'Tối:') {
+        slot.section = '';
+      }
+    } else if (mins < 17 * 60) {
+      // Afternoon slot
+      if (!assignedAfternoonHeader && (hasMorning || slot.section === 'Chiều:')) {
+        slot.section = slot.section && !['Sáng:', 'Tối:'].includes(slot.section) ? slot.section : 'Chiều:';
+        assignedAfternoonHeader = true;
+      } else if (slot.section === 'Chiều:' || slot.section === 'Sáng:' || slot.section === 'Tối:') {
+        slot.section = '';
+      }
+    } else {
+      // Evening slot
+      if (!assignedEveningHeader && (hasMorning || hasAfternoon || slot.section === 'Tối:')) {
+        slot.section = slot.section && !['Sáng:', 'Chiều:'].includes(slot.section) ? slot.section : 'Tối:';
+        assignedEveningHeader = true;
+      } else if (slot.section === 'Tối:' || slot.section === 'Sáng:' || slot.section === 'Chiều:') {
+        slot.section = '';
+      }
+    }
+  });
+}
+
+function sortAndRenderCard(cardId) {
+  const card = state.cards.find(c => c.id === cardId);
+  if (!card) return;
+  pushHistory();
+  sortCardSlotsByTime(card);
+  saveState();
+  renderApp();
+  showToast(`${card.title}: Đã tự động sắp xếp theo thứ tự Sáng - Chiều - Tối! ⏰`);
+}
+
 function updateSlotTimeInline(cardId, slotId, newTime) {
   const card = state.cards.find(c => c.id === cardId);
   if (!card) return;
@@ -856,7 +966,9 @@ function updateSlotTimeInline(cardId, slotId, newTime) {
   if (clean !== slot.time) {
     pushHistory();
     slot.time = clean;
+    sortCardSlotsByTime(card);
     saveState();
+    renderApp();
   }
 }
 
@@ -1015,11 +1127,23 @@ function openAddSlotModal(cardId) {
   editingSlotInfo = { cardId: cardId, slotId: null };
   document.getElementById('modal-slot-title').textContent = 'Thêm Hoạt Động Cho Bé';
   document.getElementById('slot-text-input').value = '';
-  document.getElementById('slot-time-input').value = '07h30 - 11h50';
-  document.getElementById('slot-section-select').value = 'Sáng:';
-  setSingleTimePickerMode(false);
-  syncDropdownsFromTime('07h30 - 11h50');
-  buildQuickTimeChips('all');
+
+  const card = state.cards.find(c => c.id === cardId);
+  // Auto-detect which period to suggest next based on existing card items
+  let initialPeriod = 'sang';
+  if (card && Array.isArray(card.slots) && card.slots.length > 0) {
+    const lastSlot = card.slots[card.slots.length - 1];
+    const mins = parseTimeToMinutes(lastSlot.time);
+    if (mins < 12 * 60) {
+      initialPeriod = 'chieu';
+    } else if (mins < 17 * 60) {
+      initialPeriod = 'toi';
+    } else {
+      initialPeriod = 'toi';
+    }
+  }
+
+  selectSessionPeriod(initialPeriod);
   chooseIcon('🏫');
   isIconManuallyChosen = false;
 
@@ -1042,9 +1166,32 @@ function openEditSlotModal(cardId, slotId) {
   document.getElementById('slot-time-input').value = slotTime;
   setSingleTimePickerMode(!slotTime.includes('-'));
   syncDropdownsFromTime(slotTime);
-  buildQuickTimeChips('all');
 
-  document.getElementById('slot-section-select').value = slot.section || '';
+  const secVal = slot.section || '';
+  document.getElementById('slot-section-select').value = secVal;
+  
+  // Determine period from section or time
+  let period = 'none';
+  if (secVal.includes('Sáng')) period = 'sang';
+  else if (secVal.includes('Trưa')) period = 'trua';
+  else if (secVal.includes('Chiều')) period = 'chieu';
+  else if (secVal.includes('Tối')) period = 'toi';
+  else {
+    const mins = parseTimeToMinutes(slotTime);
+    if (mins < 12 * 60) period = 'sang';
+    else if (mins < 13.5 * 60) period = 'trua';
+    else if (mins < 17 * 60) period = 'chieu';
+    else if (mins < 24 * 60) period = 'toi';
+  }
+
+  document.querySelectorAll('.session-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.period === period);
+  });
+  document.querySelectorAll('.period-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.period === period);
+  });
+  buildQuickTimeChips(period === 'none' ? 'all' : period);
+
   chooseIcon(slot.icon || '🕒');
   isIconManuallyChosen = true;
 
@@ -1085,6 +1232,7 @@ function saveSlot() {
         slot.section = section;
         slot.icon = icon;
       }
+      sortCardSlotsByTime(card);
     }
 
     // Apply to other selected days
@@ -1099,6 +1247,7 @@ function saveSlot() {
             icon: icon,
             section: section
           });
+          sortCardSlotsByTime(otherCard);
         }
       }
     });
@@ -1114,6 +1263,7 @@ function saveSlot() {
           icon: icon,
           section: section
         });
+        sortCardSlotsByTime(targetCard);
       }
     });
   }
@@ -1121,7 +1271,7 @@ function saveSlot() {
   saveState();
   renderApp();
   closeModal('modal-slot');
-  showToast(`Đã lưu hoạt động cho ${targetCardIds.length} ngày! ✨`);
+  showToast(`Đã lưu và sắp xếp theo thứ tự thời gian cho ${targetCardIds.length} ngày! ✨`);
 }
 
 function deleteSlot(cardId, slotId) {
@@ -1244,10 +1394,79 @@ function buildQuickTimeChips(period = 'all') {
   });
 }
 
+function selectSessionPeriod(period, customTime = null) {
+  // Update session buttons UI
+  document.querySelectorAll('.session-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.period === period);
+  });
+
+  // Sync period tabs in time chips
+  document.querySelectorAll('.period-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.period === period || (period === 'none' && btn.dataset.period === 'all'));
+  });
+
+  const sectionSelect = document.getElementById('slot-section-select');
+  const timeInput = document.getElementById('slot-time-input');
+
+  let targetSection = '';
+  let defaultTime = '';
+
+  switch (period) {
+    case 'sang':
+      targetSection = 'Sáng:';
+      defaultTime = customTime || '07h30 - 11h50';
+      break;
+    case 'trua':
+      targetSection = 'Trưa:';
+      defaultTime = customTime || '11h50 - 13h30';
+      break;
+    case 'chieu':
+      targetSection = 'Chiều:';
+      defaultTime = customTime || '14h00 - 16h30';
+      break;
+    case 'toi':
+      targetSection = 'Tối:';
+      defaultTime = customTime || '19h00 - 20h30';
+      break;
+    case 'none':
+    default:
+      targetSection = '';
+      defaultTime = customTime || (timeInput ? timeInput.value : '07h30 - 11h50');
+      break;
+  }
+
+  if (sectionSelect) {
+    sectionSelect.value = targetSection;
+  }
+
+  if (defaultTime && timeInput) {
+    timeInput.value = defaultTime;
+    setSingleTimePickerMode(!defaultTime.includes('-'));
+    syncDropdownsFromTime(defaultTime);
+  }
+
+  // Filter the quick time chips below
+  buildQuickTimeChips(period === 'none' ? 'all' : period);
+}
+
+function handleSectionSelectChange(val) {
+  let period = 'none';
+  if (val.includes('Sáng')) period = 'sang';
+  else if (val.includes('Trưa')) period = 'trua';
+  else if (val.includes('Chiều')) period = 'chieu';
+  else if (val.includes('Tối')) period = 'toi';
+
+  document.querySelectorAll('.session-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.period === period);
+  });
+  document.querySelectorAll('.period-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.period === period || (period === 'none' && btn.dataset.period === 'all'));
+  });
+  buildQuickTimeChips(period === 'none' ? 'all' : period);
+}
+
 function filterTimeChips(period, tabBtn) {
-  document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
-  if (tabBtn) tabBtn.classList.add('active');
-  buildQuickTimeChips(period);
+  selectSessionPeriod(period === 'all' ? 'none' : period);
 }
 
 function setSingleTimePickerMode(isSingle) {
@@ -1341,24 +1560,44 @@ function setQuickTime(val, section, isSingle = false) {
   syncDropdownsFromTime(val);
 
   const sectionSelect = document.getElementById('slot-section-select');
-  if (sectionSelect && section && !sectionSelect.value) {
+  if (sectionSelect && section) {
     sectionSelect.value = section;
+    handleSectionSelectChange(section);
+  } else {
+    autoSuggestSection(val);
   }
 }
 
 function autoSuggestSection(timeStr) {
   const sectionSelect = document.getElementById('slot-section-select');
-  if (!sectionSelect || sectionSelect.value) return;
+  if (!sectionSelect) return;
 
-  const clean = timeStr.toLowerCase();
-  if (clean.includes('06h') || clean.includes('07h') || clean.includes('08h') || clean.includes('09h') || clean.includes('10h')) {
-    sectionSelect.value = 'Sáng:';
-  } else if (clean.includes('11h') || clean.includes('12h') || clean.includes('13h')) {
-    sectionSelect.value = 'Trưa:';
-  } else if (clean.includes('14h') || clean.includes('15h') || clean.includes('16h') || clean.includes('17h')) {
-    sectionSelect.value = 'Chiều:';
-  } else if (clean.includes('18h') || clean.includes('19h') || clean.includes('20h') || clean.includes('21h') || clean.includes('22h')) {
-    sectionSelect.value = 'Tối:';
+  const mins = parseTimeToMinutes(timeStr);
+  let suggested = '';
+  let period = 'none';
+
+  if (mins < 12 * 60) {
+    suggested = 'Sáng:';
+    period = 'sang';
+  } else if (mins < 13.5 * 60) {
+    suggested = 'Trưa:';
+    period = 'trua';
+  } else if (mins < 17 * 60) {
+    suggested = 'Chiều:';
+    period = 'chieu';
+  } else if (mins < 24 * 60) {
+    suggested = 'Tối:';
+    period = 'toi';
+  }
+
+  if (suggested) {
+    sectionSelect.value = suggested;
+    document.querySelectorAll('.session-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.period === period);
+    });
+    document.querySelectorAll('.period-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.period === period);
+    });
   }
 }
 

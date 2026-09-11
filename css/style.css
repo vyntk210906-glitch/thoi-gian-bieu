@@ -1414,6 +1414,82 @@ body {
   color: #ffffff;
 }
 
+/* Session Selector (Sáng, Trưa, Chiều, Tối) in Modal */
+.session-selection-group {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+
+.session-pill-selector {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 5px;
+  margin-bottom: 6px;
+}
+
+.session-btn {
+  flex: 1;
+  min-width: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 9999px;
+  padding: 6px 8px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.session-btn:hover {
+  background: #f0f9ff;
+  border-color: #38bdf8;
+  color: #0284c7;
+  transform: translateY(-1px);
+}
+
+.session-btn.active {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+}
+
+.session-custom-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 4px;
+  padding-top: 5px;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.session-custom-label {
+  font-weight: 750;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.session-select-inline {
+  padding: 2px 8px !important;
+  font-size: 0.80rem !important;
+  font-weight: 800 !important;
+  height: 28px !important;
+  border-radius: 6px !important;
+  max-width: 180px;
+}
+
 /* Child Profile Selector in Toolbar */
 .profile-selector-group {
   background: #f0fdf4;

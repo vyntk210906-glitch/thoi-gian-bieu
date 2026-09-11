@@ -202,6 +202,39 @@
           <small id="icon-hint-text" style="color: #0284c7; font-size: 0.78rem; font-weight: 600;">Tự động chọn icon cute theo từ khóa khi nhập</small>
         </div>
 
+        <!-- Session / Period Selection (Sáng / Trưa / Chiều / Tối) -->
+        <div class="form-group session-selection-group">
+          <label style="font-weight: 850; color: #0f172a;">🌅 Chọn buổi hoạt động (Sắp xếp theo thời gian):</label>
+          <div class="session-pill-selector" id="session-pill-selector">
+            <button type="button" class="session-btn active" data-period="sang" onclick="selectSessionPeriod('sang')">
+              <span>🌅</span> Sáng
+            </button>
+            <button type="button" class="session-btn" data-period="trua" onclick="selectSessionPeriod('trua')">
+              <span>🍱</span> Trưa
+            </button>
+            <button type="button" class="session-btn" data-period="chieu" onclick="selectSessionPeriod('chieu')">
+              <span>⛅</span> Chiều
+            </button>
+            <button type="button" class="session-btn" data-period="toi" onclick="selectSessionPeriod('toi')">
+              <span>🌙</span> Tối
+            </button>
+            <button type="button" class="session-btn" data-period="none" onclick="selectSessionPeriod('none')">
+              <span>⚡</span> Tự do
+            </button>
+          </div>
+          <div class="session-custom-row">
+            <span class="session-custom-label">Tiêu đề buổi hiển thị trên bảng:</span>
+            <select id="slot-section-select" class="input-field session-select-inline" onchange="handleSectionSelectChange(this.value)">
+              <option value="">-- Tự động theo thời gian --</option>
+              <option value="Sáng:">Sáng:</option>
+              <option value="Trưa:">Trưa:</option>
+              <option value="Chiều:">Chiều:</option>
+              <option value="Tối:">Tối:</option>
+              <option value="Chiều & Tối:">Chiều & Tối:</option>
+            </select>
+          </div>
+        </div>
+
         <!-- Enhanced Smart Time Picker -->
         <div class="smart-time-box">
           <label>⏰ Khung thời gian hoạt động:</label>
@@ -232,29 +265,16 @@
           <!-- Quick Time Chips Grouped by Session -->
           <div class="time-chips-container">
             <div class="time-period-tabs">
-              <button type="button" class="period-tab active" onclick="filterTimeChips('all', this)">Tất cả</button>
-              <button type="button" class="period-tab" onclick="filterTimeChips('sang', this)">🌅 Sáng</button>
-              <button type="button" class="period-tab" onclick="filterTimeChips('trua', this)">🍱 Trưa</button>
-              <button type="button" class="period-tab" onclick="filterTimeChips('chieu', this)">⛅ Chiều</button>
-              <button type="button" class="period-tab" onclick="filterTimeChips('toi', this)">🌙 Tối</button>
+              <button type="button" class="period-tab active" data-period="sang" onclick="selectSessionPeriod('sang')">🌅 Sáng</button>
+              <button type="button" class="period-tab" data-period="trua" onclick="selectSessionPeriod('trua')">🍱 Trưa</button>
+              <button type="button" class="period-tab" data-period="chieu" onclick="selectSessionPeriod('chieu')">⛅ Chiều</button>
+              <button type="button" class="period-tab" data-period="toi" onclick="selectSessionPeriod('toi')">🌙 Tối</button>
+              <button type="button" class="period-tab" data-period="all" onclick="selectSessionPeriod('none')">Tất cả</button>
             </div>
             <div class="time-chips" id="quick-time-chips">
               <!-- Injected by buildQuickTimeChips() -->
             </div>
           </div>
-        </div>
-
-        <!-- Section header label (optional) -->
-        <div class="form-group">
-          <label for="slot-section-select">Tiêu đề phân đoạn buổi (tùy chọn):</label>
-          <select id="slot-section-select" class="input-field">
-            <option value="">-- Không có tiêu đề buổi --</option>
-            <option value="Sáng:">Sáng:</option>
-            <option value="Trưa:">Trưa:</option>
-            <option value="Chiều:">Chiều:</option>
-            <option value="Tối:">Tối:</option>
-            <option value="Chiều & Tối:">Chiều & Tối:</option>
-          </select>
         </div>
 
         <!-- Reusable: Apply to Multiple Days -->

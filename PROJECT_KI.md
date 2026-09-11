@@ -105,6 +105,14 @@
   11. **Xuất file PDF & In ấn chuẩn A4 Tuyệt đối sạch sẽ**:
      - 100% các nút thao tác (`+ Thêm hoạt động`, `✏️`, `🗑️`, `🎨`, `▲`, `▼`, tay nắm kéo thả `⠿`, huy hiệu `1T/2T`, khay hoạt động nhanh, thanh công cụ) được ẩn hoàn toàn khi in.
   12. **Tự động lưu**: Lưu toàn bộ thay đổi vào `localStorage` (`thoi_gian_bieu_profiles_v1` & `thoi_gian_bieu_state_v4`).
+  13. **Bộ Chọn Buổi 1-Chạm & Tự Động Sắp Xếp Trật Tự Thời Gian (Chronological Time-based Sorting & 1-Click Session Selector)**:
+     - **Bộ chọn buổi 1-chạm (1-Click Session Pills)**: Trong Modal Thêm/Sửa hoạt động, 4 nút pill `[🌅 Sáng]`, `[🍱 Trưa]`, `[⛅ Chiều]`, `[🌙 Tối]` cho phép phụ huynh đổi nhanh buổi; tự động đồng bộ hóa khung giờ chuẩn, dropdown chọn giờ bắt đầu/kết thúc, nhóm chip gợi ý và nhãn phân cách buổi (`slot-section-select`).
+     - **Thuật toán sắp xếp theo trật tự thời gian (`sortCardSlotsByTime`)**:
+       - Phân tích mọi định dạng chuỗi thời gian tiếng Việt (`07h30 - 11h50`, `14h00`, `19:30`, `21h30 trở đi`...) thành số phút tính từ 0h00 (`parseTimeToMinutes`).
+       - Khi thêm mới hoặc chỉnh sửa hoạt động, thẻ tự động sắp xếp các hoạt động tăng dần theo thời gian thực (từ sáng sớm đến đêm muộn), không bao giờ bị xáo trộn.
+       - **Tự động gán và khử trùng lặp nhãn phân cách buổi**: Hệ thống tự động phân loại các mốc giờ (< 12h00: Sáng, 12h00 - 16h59: Chiều, $\ge$ 17h00: Tối). Nhãn `Chiều:` và `Tối:` chỉ được hiển thị ở hoạt động đầu tiên của buổi đó và triệt tiêu trùng lặp ở các hoạt động tiếp theo.
+     - **Tự động sắp xếp lại tức thì khi sửa giờ trực tiếp (Inline Time Re-sorting)**: Khi phụ huynh nhấp đúp/sửa giờ trực tiếp trên thẻ lịch, hệ thống ngay lập tức định vị lại hoạt động đúng vị trí thời gian của nó trong ngày mà không cần tải lại trang.
+     - **Nút sắp xếp thủ công trên thẻ (`⏰ Sắp xếp theo giờ`)**: Nút chức năng trong menu hover giúp phụ huynh chủ động kích hoạt sắp xếp bất kỳ lúc nào.
 
 ## 3. Kiến trúc & Cấu trúc Thư mục
 - `/home/video-system/thoi-gian-bieu/`
