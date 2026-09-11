@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tạo & In Thời Gian Biểu Cho Bé</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
+</head>
+<body>
+
+  <!-- App Header / Action Navigation -->
+  <header class="app-header no-print">
+    <div class="brand-title">
+      <span>🎨</span>
+      <span>Tạo Thời Gian Biểu Đẹp Cho Bé</span>
+    </div>
+
+    <div class="header-actions">
+      <!-- Presets Selector -->
+      <select class="input-field" id="select-preset" onchange="loadPreset(this.value)" title="Chọn mẫu thời gian biểu">
+        <option value="original">📋 Mẫu: Giống ảnh gốc (Trịnh Xuân Khang)</option>
+        <option value="7days">📅 Mẫu: 7 Ngày Chuẩn (T2 - CN)</option>
+        <option value="5days">🏫 Mẫu: 5 Ngày Học (T2 - T6)</option>
+      </select>
+
+      <!-- Add Day / Column Button -->
+      <button class="btn btn-outline" onclick="openAddCardModal()" title="Thêm một ngày hoặc cột mới">
+        <span>➕</span> Thêm Cột / Ngày
+      </button>
+
+      <!-- Print Button (Vector A4) -->
+      <button class="btn btn-primary" onclick="printTimetable()" title="In ra giấy A4 hoặc Lưu PDF vector sắc nét">
+        <span>🖨️</span> In Thời Gian Biểu
+      </button>
+
+      <!-- Direct PDF Download Button -->
+      <button class="btn btn-success" onclick="exportPDF()" title="Tải trực tiếp file PDF về máy">
+        <span>📥</span> Xuất File PDF
+      </button>
+    </div>
+  </header>
+
+  <!-- Secondary Settings Toolbar -->
+  <div class="toolbar no-print">
+    <div class="toolbar-group">
+      <label for="input-student-name">Tên bé:</label>
+      <input type="text" id="input-student-name" class="input-field" placeholder="Nhập tên học sinh..." style="width: 170px;">
+    </div>
+
+    <div class="toolbar-group">
+      <label for="select-layout">Bố cục in:</label>
+      <select id="select-layout" class="input-field">
+        <option value="2rows">2 Hàng (5 cột x 2 hàng - Giống ảnh mẫu 100%)</option>
+        <option value="7cols">7 Cột dàn đều (Thứ 2 đến Chủ Nhật)</option>
+        <option value="5cols">5 Cột dàn đều (Thứ 2 đến Thứ 6)</option>
+        <option value="free">Lưới tự do (Tự căn chỉnh)</option>
+      </select>
+    </div>
+
+    <div class="toolbar-group">
+      <label for="select-mascot">Linh vật hoạt hình:</label>
+      <select id="select-mascot" class="input-field">
+        <option value="boys">Bé trai (Giống ảnh gốc)</option>
+        <option value="girls">Bé gái đáng yêu</option>
+        <option value="mixed">Cả bé trai & bé gái</option>
+        <option value="none">Không hiển thị linh vật</option>
+      </select>
+    </div>
+
+    <div class="toolbar-group" style="margin-left: auto;">
+      <button class="btn btn-outline btn-sm" onclick="openHeaderEditModal()" title="Sửa tiêu đề chính">
+        ✏️ Đổi Tiêu Đề
+      </button>
+      <button class="btn btn-outline btn-sm" onclick="if(confirm('Khôi phục lại dữ liệu mẫu ban đầu?')) { localStorage.removeItem('thoi_gian_bieu_state'); loadSavedState(); renderApp(); }" title="Làm mới">
+        🔄 Khôi Phục Mẫu
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Canvas Workspace -->
+  <main class="workspace">
+    <div class="timetable-sheet-wrapper">
+      <div class="timetable-sheet" id="timetable-sheet">
+
+        <!-- Header Banner Section -->
+        <div class="sheet-header">
+          <!-- Left Mascot -->
+          <div class="mascot-box" id="mascot-left">
+            <img class="mascot-img" src="assets/boy-left.svg" alt="Boy Student">
+          </div>
+
+          <!-- Central Cloud Banner -->
+          <div class="title-banner" onclick="openHeaderEditModal()" title="Bấm vào đây để sửa Tiêu đề & Tên bé">
+            <!-- Decorative Stars -->
+            <img class="star-deco star-1" src="assets/stars.svg" alt="star">
+            <img class="star-deco star-2" src="assets/stars.svg" alt="star">
+            <img class="star-deco star-3" src="assets/stars.svg" alt="star">
+            <img class="star-deco star-4" src="assets/stars.svg" alt="star">
+
+            <div class="banner-main-title" id="banner-title-text">
+              THỜI GIAN BIỂU - <span class="student-name-highlight">Trịnh Xuân Khang</span>
+            </div>
+            <div class="banner-subtitle" id="banner-subtitle-text">
+              Kế hoạch sinh hoạt và học tập
+            </div>
+          </div>
+
+          <!-- Right Mascot -->
+          <div class="mascot-box" id="mascot-right">
+            <img class="mascot-img" src="assets/boy-right.svg" alt="Boy Reading">
+          </div>
+        </div>
+
+        <!-- Grid Cards Container -->
+        <div class="grid-container grid-2rows" id="timetable-grid">
+          <!-- Rendered dynamically by app.js -->
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal: Add / Edit Slot (Hoạt động) -->
+  <div class="modal-backdrop" id="modal-slot">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-slot-title">Thêm Hoạt Động</div>
+        <button class="modal-close" onclick="closeModal('modal-slot')">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Content input with live auto icon matcher -->
+        <div class="form-group">
+          <label for="slot-text-input">Nội dung hoạt động (*):</label>
+          <input type="text" id="slot-text-input" class="input-field" placeholder="VD: Ngủ trưa, Tập gym, Học tiếng Anh, Ăn tối, Làm bài tập...">
+          <small id="icon-hint-text" style="color: #0284c7; font-size: 0.78rem; font-weight: 600;">Tự động chọn icon phù hợp khi nhập</small>
+        </div>
+
+        <!-- Time Range Input -->
+        <div class="form-group">
+          <label for="slot-time-input">Khung thời gian:</label>
+          <input type="text" id="slot-time-input" class="input-field" placeholder="VD: Sáng (07h30 - 11h50), 13h30 - 14h30, 19h00 - 20h00...">
+          <!-- Quick Time Chips -->
+          <div class="time-chips">
+            <button type="button" class="time-chip" onclick="setQuickTime('Sáng (07h30 - 11h50)')">Sáng (07h30 - 11h50)</button>
+            <button type="button" class="time-chip" onclick="setQuickTime('13h30 - 14h30')">13h30 - 14h30</button>
+            <button type="button" class="time-chip" onclick="setQuickTime('14h30 - 15h30')">14h30 - 15h30</button>
+            <button type="button" class="time-chip" onclick="setQuickTime('15h30 - 16h30')">15h30 - 16h30</button>
+            <button type="button" class="time-chip" onclick="setQuickTime('16h30 - 18h30')">16h30 - 18h30</button>
+            <button type="button" class="time-chip" onclick="setQuickTime('17h00 - 19h00')">17h00 - 19h00</button>
+            <button type="button" class="time-chip" onclick="setQuickTime('19h00 - 20h00')">19h00 - 20h00</button>
+            <button type="button" class="time-chip" onclick="setQuickTime('20h00 - 21h30')">20h00 - 21h30</button>
+            <button type="button" class="time-chip" onclick="setQuickTime('21h30 trở đi')">21h30 trở đi</button>
+          </div>
+        </div>
+
+        <!-- Section header label (optional) -->
+        <div class="form-group">
+          <label for="slot-section-select">Tiêu đề phân đoạn buổi (tùy chọn):</label>
+          <select id="slot-section-select" class="input-field">
+            <option value="">-- Không có tiêu đề buổi --</option>
+            <option value="Sáng:">Sáng:</option>
+            <option value="Chiều:">Chiều:</option>
+            <option value="Tối:">Tối:</option>
+            <option value="Chiều & Tối:">Chiều & Tối:</option>
+          </select>
+        </div>
+
+        <!-- Icon Selector Box -->
+        <div class="form-group">
+          <label>Biểu tượng (Icon):</label>
+          <div class="icon-preview-row">
+            <div class="current-icon-badge" id="current-icon-display" title="Icon được chọn">🕒</div>
+            <div style="font-size: 0.8rem; color: #64748b;">
+              Icon sẽ <b>tự động thay đổi</b> theo từ khóa bạn gõ, hoặc bạn có thể click chọn bên dưới:
+            </div>
+          </div>
+
+          <div class="icon-picker-box" id="icon-picker-box">
+            <!-- Rendered by buildIconPickerGrid() -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-slot')">Hủy</button>
+        <button type="button" class="btn btn-primary" onclick="saveSlot()">Lưu Hoạt Động</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add / Edit Card / Column -->
+  <div class="modal-backdrop" id="modal-card">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="card-modal-title">Cột / Ngày</div>
+        <button class="modal-close" onclick="closeModal('modal-card')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="card-title-input">Tên cột / Ngày (*):</label>
+          <input type="text" id="card-title-input" class="input-field" placeholder="VD: THỨ HAI, THỨ BA, LỊCH TỐI, GHI CHÚ...">
+        </div>
+        <div class="form-group">
+          <label>Màu sắc nổi bật cho thanh tiêu đề:</label>
+          <div class="color-swatches" id="color-swatches-container">
+            <!-- Injected by JS -->
+          </div>
+          <input type="color" id="card-color-input" style="margin-top: 8px; width: 100%; height: 36px; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer;">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-card')">Hủy</button>
+        <button type="button" class="btn btn-primary" onclick="saveCard()">Lưu Cột</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Edit Header Title & Student Name -->
+  <div class="modal-backdrop" id="modal-header-edit">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Sửa Tiêu Đề Bảng In</div>
+        <button class="modal-close" onclick="closeModal('modal-header-edit')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="header-title-input">Tiêu đề chính:</label>
+          <input type="text" id="header-title-input" class="input-field" value="THỜI GIAN BIỂU">
+        </div>
+        <div class="form-group">
+          <label for="header-student-input">Tên học sinh:</label>
+          <input type="text" id="header-student-input" class="input-field" value="Trịnh Xuân Khang">
+        </div>
+        <div class="form-group">
+          <label for="header-sub-input">Phụ đề (Lớp / Lời nhắc nhở):</label>
+          <input type="text" id="header-sub-input" class="input-field" value="Kế hoạch sinh hoạt và học tập">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-header-edit')">Hủy</button>
+        <button type="button" class="btn btn-primary" onclick="saveHeaderEdit()">Cập Nhật</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container no-print" id="toast-container"></div>
+
+  <!-- Script dependencies -->
+  <script src="js/html2pdf.bundle.min.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/presets.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
