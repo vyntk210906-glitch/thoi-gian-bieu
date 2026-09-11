@@ -68,11 +68,18 @@
              4. `density-compact` (Khối 1 tầng 7-8 mục): font `0.72rem`, icon `0.86rem`, gap `3px`, padding `1px 2px`.
              5. `density-dense` (Khối 1 tầng 9-11 mục): font `0.66rem`, icon `0.78rem`, gap `2.5px`, padding `0.5px 1.5px`.
              6. `density-ultra` (Khối 1 tầng $\ge 12$ mục): font `0.60rem`, icon `0.70rem`, gap `2px`, padding `0.2px 1px`.
+           - **Dàn trang từng block ngày theo chiều dọc (Vertical Slot Layout) & Lấp đầy khoảng trắng dọc (Justify Fill)**:
+             - **Kiến trúc bố cục dọc (`layout-vertical`)**: Mốc thời gian (`.slot-time`) nằm ở dòng trên in đậm rõ nét, nội dung hoạt động (`.slot-text`) nằm ở dòng riêng ngay bên dưới, biểu tượng emoji (`.slot-icon-badge`) đóng vai trò bullet icon gọn gàng bên trái.
+             - **Dàn đều lấp kín chiều cao ô (`.card-slots.justify-fill` / `justify-fill-few`)**: Ứng dụng thuộc tính Flexbox `justify-content: space-between` (cho khối $\ge 3$ mục) và `justify-content: space-around` (cho khối $\le 2$ mục) để kéo giãn các mục trải đều từ đỉnh đến đáy của từng khối ngày. Nhờ đó, các ngày có ít mục (như T3, T4, T7, CN) lấp kín 100% diện tích thẻ, triệt tiêu hoàn toàn khoảng trắng trống rỗng ở đáy khối ("kín hết ko bỏ lỡ các space").
+             - **Khống chế kích thước chữ tối đa (Strict Font Size Cap)**: Kích thước chữ to nhất tuyệt đối không vượt quá mẫu to nhất hiện tại (`density-spacious`: max font `0.92rem` ~ 14.72px, icon `1.15rem`, divider `0.90rem`). Cỡ chữ được tính toán thích ứng theo số lượng mục mà không bị phóng đại quá cỡ.
+             - **Cơ chế tự phục hồi 2 pha (Two-Phase Adaptive Fallback)** trong `autoFitCardSlots`:
+               - *Pha 1*: Nếu thẻ đang ở chế độ dọc (`layout-vertical`) và nội dung bị tràn (`scrollHeight > clientHeight + 0.5px`), hệ thống tự động hạ cấp thẻ đó sang chế độ ngang (`layout-horizontal`) để bảo toàn không gian mà không làm vỡ bố cục.
+               - *Pha 2*: Nếu sau khi chuyển sang chế độ ngang vẫn còn tràn viền, hệ thống mới tiến hành vi điều chỉnh co giãn `--auto-scale` (từ `1.0` xuống `0.97`, `0.94`...).
            - **Thuật toán Tự động Vi điều chỉnh Copy-Fitting (`autoFitCardSlots`)**:
              - Đo đạc chính xác theo thời gian thực: Nếu `scrollHeight > clientHeight + 0.5px`, hàm tự động hạ biến tỉ lệ `--auto-scale` (từ `1.0` xuống `0.97`, `0.94`...) cho đến khi $scrollHeight \le clientHeight$.
              - Tự động kích hoạt khi người dùng gõ sửa chữ trực tiếp (`handleSlotTextInlineInput`), khi thêm/xóa/đổi kích thước ô, khi thay đổi kích thước cửa sổ (`resize`), và trước khi in hoặc xuất file PDF.
              - Đảm bảo 100% nội dung luôn nhìn thấy trọn vẹn, không bị scroll, không bị che khuất và luôn nằm gọn trong 1 trang A4 Landscape duy nhất.
-       - **Cache-busting**: Thêm query string `?v=5.1` vào các file CSS/JS trong `index.html` để đảm bảo trình duyệt người dùng luôn tải phiên bản mới nhất, không bị lưu cache cũ.
+       - **Cache-busting**: Thêm query string `?v=5.2` vào các file CSS/JS trong `index.html` để đảm bảo trình duyệt người dùng luôn tải phiên bản mới nhất, không bị lưu cache cũ.
   5. **Tối ưu Kích thước Chữ (Font Size) Khổ in A4**:
      - Tăng kích thước font chữ toàn diện để bé và phụ huynh dễ dàng quan sát khi dán tường hoặc để bàn:
        - Tiêu đề ngày (`.card-header-pill`): tăng lên `1.02rem` (màn hình) và `0.95rem` (bản in), chiều cao viên thuốc `32px`.
