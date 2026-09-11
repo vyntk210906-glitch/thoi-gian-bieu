@@ -8,16 +8,16 @@ const PRESET_ORIGINAL = {
   studentName: "Trịnh Xuân Khang",
   subtitle: "",
   mascotTheme: "boys",
-  layoutMode: "photo", // 'photo' (Exact replica: Col 1 & 5 tall, Cols 2-4 split 2 cards)
+  layoutMode: "photo", // 'photo' (5 Cột linh hoạt, T2 & Ghi Chú cao, các ngày ở giữa 2 tầng)
   themePalette: "rainbow",
   cards: [
-    // --- CỘT 1: THỨ HAI (Cao toàn bộ cột, gồm Sáng, Chiều, Tối) ---
+    // --- CỘT 1: THỨ HAI (Cao toàn bộ cột, 2 tầng) ---
     {
       id: "card-mon",
       title: "THỨ HAI",
       color: "#1d72b8",
-      gridCol: 1,
-      gridSpan: 2,
+      spanRows: 2,
+      spanCols: 1,
       slots: [
         { id: "m1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
         { id: "m2", time: "13h30 - 14h30", text: "Ngủ trưa", icon: "🛏️", section: "Chiều:" },
@@ -32,13 +32,13 @@ const PRESET_ORIGINAL = {
       ]
     },
 
-    // --- CỘT 2 - TRÊN: THỨ BA ---
+    // --- CỘT 2 - TRÊN: THỨ BA (1 tầng) ---
     {
       id: "card-tue",
       title: "THỨ BA",
       color: "#239546",
-      gridCol: 2,
-      gridRow: 1,
+      spanRows: 1,
+      spanCols: 1,
       slots: [
         { id: "t1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
         { id: "t2", time: "13h30 - 14h30", text: "Ngủ trưa", icon: "🛏️", section: "Chiều:" },
@@ -48,29 +48,13 @@ const PRESET_ORIGINAL = {
       ]
     },
 
-    // --- CỘT 2 - DƯỚI: THỨ SÁU ---
-    {
-      id: "card-fri-bot",
-      title: "THỨ SÁU",
-      color: "#f16323",
-      gridCol: 2,
-      gridRow: 2,
-      slots: [
-        { id: "fb1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
-        { id: "fb2", time: "13h30 - 19h30", text: "Ngủ trưa", icon: "🛏️", section: "Chiều:" },
-        { id: "fb3", time: "19h30 - 20h30", text: "Về nhà, ăn tối", icon: "🍽️" },
-        { id: "fb4", time: "20h30 - 21h30", text: "Kiểm tra lại BTVN, soạn sách vở và chuẩn bị quần áo cho ngày mai", icon: "🎒" },
-        { id: "fb5", time: "21h30 trở đi", text: "Nghỉ ngơi và đi ngủ", icon: "😴" }
-      ]
-    },
-
-    // --- CỘT 3 - TRÊN: THỨ TƯ ---
+    // --- CỘT 3 - TRÊN: THỨ TƯ (1 tầng) ---
     {
       id: "card-wed",
       title: "THỨ TƯ",
       color: "#e8a825",
-      gridCol: 3,
-      gridRow: 1,
+      spanRows: 1,
+      spanCols: 1,
       slots: [
         { id: "w1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
         { id: "w2", time: "13h30 - 14h30", text: "Ngủ trưa", icon: "🛏️", section: "Chiều:" },
@@ -80,28 +64,13 @@ const PRESET_ORIGINAL = {
       ]
     },
 
-    // --- CỘT 3 - DƯỚI: THỨ BẢY ---
-    {
-      id: "card-sat",
-      title: "THỨ BẢY",
-      color: "#7842a2",
-      gridCol: 3,
-      gridRow: 2,
-      slots: [
-        { id: "s1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
-        { id: "s2", time: "13h15 - 15h00", text: "Đến trường học", icon: "🚌", section: "Chiều:" },
-        { id: "s3", time: "15h00 - 17h00", text: "Đến trường học Toán - Tiếng Anh", icon: "📐" },
-        { id: "s4", time: "17h00 - 18h00", text: "Tắm rửa, nghỉ ngơi", icon: "🎵" }
-      ]
-    },
-
-    // --- CỘT 4 - TRÊN: THỨ NĂM ---
+    // --- CỘT 4 - TRÊN: THỨ NĂM (1 tầng) ---
     {
       id: "card-thu",
       title: "THỨ NĂM",
       color: "#df2528",
-      gridCol: 4,
-      gridRow: 1,
+      spanRows: 1,
+      spanCols: 1,
       slots: [
         { id: "th1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
         { id: "th2", time: "13h30 - 14h30", text: "Ngủ trưa", icon: "🛏️", section: "Chiều:" },
@@ -112,33 +81,64 @@ const PRESET_ORIGINAL = {
       ]
     },
 
-    // --- CỘT 4 - DƯỚI: CHỦ NHẬT ---
+    // --- CỘT 5: GHI CHÚ & MỤC TIÊU (Cao toàn bộ cột, 2 tầng) ---
+    {
+      id: "card-notes",
+      title: "GHI CHÚ & MỤC TIÊU",
+      color: "#ea580c",
+      spanRows: 2,
+      spanCols: 1,
+      slots: [
+        { id: "n1", time: "Mục tiêu tuần", text: "Hoàn thành bài tập trước 21h00", icon: "🎯" },
+        { id: "n2", time: "Lời dặn bố mẹ", text: "Uống đủ nước, tập thể dục đều đặn", icon: "💧", section: "Lưu ý:" },
+        { id: "n3", time: "Tối Chủ Nhật", text: "Chuẩn bị đồng phục & sách vở cho tuần mới", icon: "🎒" },
+        { id: "n4", time: "21h30 trở đi", text: "Nghỉ ngơi, ngủ đủ giấc", icon: "😴" }
+      ]
+    },
+
+    // --- CỘT 2 - DƯỚI: THỨ SÁU (1 tầng) ---
+    {
+      id: "card-fri",
+      title: "THỨ SÁU",
+      color: "#f16323",
+      spanRows: 1,
+      spanCols: 1,
+      slots: [
+        { id: "fb1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
+        { id: "fb2", time: "13h30 - 14h30", text: "Ngủ trưa", icon: "🛏️", section: "Chiều:" },
+        { id: "fb3", time: "19h30 - 20h30", text: "Về nhà, ăn tối", icon: "🍽️", section: "Tối:" },
+        { id: "fb4", time: "20h30 - 21h30", text: "Kiểm tra lại BTVN, soạn sách vở", icon: "🎒" },
+        { id: "fb5", time: "21h30 trở đi", text: "Nghỉ ngơi và đi ngủ", icon: "😴" }
+      ]
+    },
+
+    // --- CỘT 3 - DƯỚI: THỨ BẢY (1 tầng) ---
+    {
+      id: "card-sat",
+      title: "THỨ BẢY",
+      color: "#7842a2",
+      spanRows: 1,
+      spanCols: 1,
+      slots: [
+        { id: "s1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
+        { id: "s2", time: "13h15 - 15h00", text: "Đến trường học", icon: "🚌", section: "Chiều:" },
+        { id: "s3", time: "15h00 - 17h00", text: "Đến trường học Toán - Tiếng Anh", icon: "📐" },
+        { id: "s4", time: "17h00 - 18h00", text: "Tắm rửa, nghỉ ngơi", icon: "🎵" }
+      ]
+    },
+
+    // --- CỘT 4 - DƯỚI: CHỦ NHẬT (1 tầng) ---
     {
       id: "card-sun",
       title: "CHỦ NHẬT",
       color: "#0b9195",
-      gridCol: 4,
-      gridRow: 2,
+      spanRows: 1,
+      spanCols: 1,
       slots: [
         { id: "sn1", time: "Sáng (07h30 - 11h50)", text: "Học thêm Toán Trường Anh", icon: "📐" },
         { id: "sn2", time: "18h00 - 20h00", text: "Học thêm", icon: "📚" },
         { id: "sn3", time: "20h00 - 21h00", text: "Nghỉ ngơi mẹ Từng Lâm", icon: "🛋️" },
         { id: "sn4", time: "20h00 trở đi", text: "Về nhà, ăn tối nghỉ ngơi", icon: "🍽️" }
-      ]
-    },
-
-    // --- CỘT 5: THỨ SÁU (Cao toàn bộ cột) ---
-    {
-      id: "card-fri-tall",
-      title: "THỨ SÁU",
-      color: "#f16323",
-      gridCol: 5,
-      gridSpan: 2,
-      slots: [
-        { id: "f1", time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🕒" },
-        { id: "f2", time: "18h00 - 20h00", text: "Ăn tối và nghỉ ngơi", icon: "🍽️", section: "Tối:" },
-        { id: "f3", time: "20h00 - 21h00", text: "Chuẩn bị sách vở, quần áo cho thứ 2 đi học", icon: "🎒" },
-        { id: "f4", time: "21h00 trở đi", text: "Nghỉ ngơi, đi ngủ", icon: "🎵" }
       ]
     }
   ]
@@ -156,6 +156,8 @@ const PRESET_STANDARD_7DAYS = {
       id: "col-std-mon",
       title: "THỨ HAI",
       color: "#2563eb",
+      spanRows: 1,
+      spanCols: 1,
       slots: [
         { id: "sm1", time: "07h30 - 11h30", text: "Học chính tại trường", icon: "🏫" },
         { id: "sm2", time: "11h30 - 13h30", text: "Ăn trưa & Ngủ trưa", icon: "🛏️" },
@@ -170,6 +172,8 @@ const PRESET_STANDARD_7DAYS = {
       id: "col-std-tue",
       title: "THỨ BA",
       color: "#16a34a",
+      spanRows: 1,
+      spanCols: 1,
       slots: [
         { id: "st1", time: "07h30 - 11h30", text: "Học chính tại trường", icon: "🏫" },
         { id: "st2", time: "11h30 - 13h30", text: "Ăn trưa & Ngủ trưa", icon: "🛏️" },
@@ -184,6 +188,8 @@ const PRESET_STANDARD_7DAYS = {
       id: "col-std-wed",
       title: "THỨ TƯ",
       color: "#f59e0b",
+      spanRows: 1,
+      spanCols: 1,
       slots: [
         { id: "sw1", time: "07h30 - 11h30", text: "Học chính tại trường", icon: "🏫" },
         { id: "sw2", time: "11h30 - 13h30", text: "Ăn trưa & Ngủ trưa", icon: "🛏️" },
@@ -198,6 +204,8 @@ const PRESET_STANDARD_7DAYS = {
       id: "col-std-thu",
       title: "THỨ NĂM",
       color: "#dc2626",
+      spanRows: 1,
+      spanCols: 1,
       slots: [
         { id: "sth1", time: "07h30 - 11h30", text: "Học chính tại trường", icon: "🏫" },
         { id: "sth2", time: "11h30 - 13h30", text: "Ăn trưa & Ngủ trưa", icon: "🛏️" },
@@ -212,6 +220,8 @@ const PRESET_STANDARD_7DAYS = {
       id: "col-std-fri",
       title: "THỨ SÁU",
       color: "#ea580c",
+      spanRows: 1,
+      spanCols: 1,
       slots: [
         { id: "sf1", time: "07h30 - 11h30", text: "Học chính tại trường", icon: "🏫" },
         { id: "sf2", time: "11h30 - 13h30", text: "Ăn trưa & Ngủ trưa", icon: "🛏️" },
@@ -226,6 +236,8 @@ const PRESET_STANDARD_7DAYS = {
       id: "col-std-sat",
       title: "THỨ BẢY",
       color: "#7c3aed",
+      spanRows: 1,
+      spanCols: 1,
       slots: [
         { id: "ssa1", time: "08h00 - 10h00", text: "Học vẽ / Nghệ thuật", icon: "🎨" },
         { id: "ssa2", time: "10h00 - 11h30", text: "Đọc sách truyện", icon: "📖" },
@@ -240,6 +252,8 @@ const PRESET_STANDARD_7DAYS = {
       id: "col-std-sun",
       title: "CHỦ NHẬT",
       color: "#0d9488",
+      spanRows: 1,
+      spanCols: 1,
       slots: [
         { id: "ssu1", time: "08h00 - 10h00", text: "Học thêm Toán nâng cao", icon: "📐" },
         { id: "ssu2", time: "10h00 - 11h30", text: "Dọn dẹp góc học tập", icon: "🧹" },
