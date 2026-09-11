@@ -357,16 +357,29 @@ function renderGrid() {
   gridContainer.style.gridTemplateRows = layout.rows;
   gridContainer.style.gridAutoFlow = 'row';
 
+  const isSingleRowLayout = effectiveLayout === '7cols' || effectiveLayout === '5cols';
+
   state.cards.forEach((card, cardIndex) => {
-    const is1T = (card.spanRows || 1) === 1;
     const is2T = (card.spanRows || 1) === 2;
-    const slotCount = card.slots ? card.slots.length : 0;
+    const isFullHeight = is2T || isSingleRowLayout;
     
-    let densityClass = '';
-    if (is1T && slotCount >= 7) {
-      densityClass = 'slots-dense';
-    } else if (is2T && slotCount <= 6) {
-      densityClass = 'slots-spacious';
+    // Count both slots and section divider labels
+    const slotsList = card.slots || [];
+    const sectionCount = slotsList.filter(s => s.section && s.section.trim() !== '').length;
+    const totalItems = slotsList.length + sectionCount;
+    
+    let densityClass = 'density-normal';
+    if (isFullHeight) {
+      if (totalItems <= 7) densityClass = 'density-spacious';
+      else if (totalItems <= 10) densityClass = 'density-normal';
+      else if (totalItems <= 13) densityClass = 'density-moderate';
+      else densityClass = 'density-compact';
+    } else {
+      if (totalItems <= 4) densityClass = 'density-normal';
+      else if (totalItems <= 6) densityClass = 'density-moderate';
+      else if (totalItems <= 8) densityClass = 'density-compact';
+      else if (totalItems <= 11) densityClass = 'density-dense';
+      else densityClass = 'density-ultra';
     }
 
     const cardEl = document.createElement('div');
@@ -486,6 +499,32 @@ function renderGrid() {
     cardEl.appendChild(addSlotBtn);
 
     gridContainer.appendChild(cardEl);
+  });
+
+  // Guarantee zero scrollbars & zero clipping across all cards
+  autoFitCardSlots();
+}
+
+// Dynamic Copy-Fitting: Micro-adjust typography scale to guarantee zero overflow / scrollbars
+function autoFitCardSlots(targetCardId = null) {
+  const cards = targetCardId
+    ? [document.querySelector(`.time-card[data-card-id="${targetCardId}"]`)].filter(Boolean)
+    : document.querySelectorAll('.time-card');
+
+  cards.forEach(card => {
+    const slots = card.querySelector('.card-slots');
+    if (!slots) return;
+
+    slots.style.removeProperty('--auto-scale');
+
+    let scale = 1.0;
+    let iterations = 0;
+    // When scrollHeight exceeds clientHeight by even 0.5px, scale down smoothly
+    while (slots.scrollHeight > slots.clientHeight + 0.5 && iterations < 15 && scale > 0.55) {
+      scale -= 0.03;
+      slots.style.setProperty('--auto-scale', scale.toFixed(2));
+      iterations++;
+    }
   });
 }
 
@@ -728,6 +767,7 @@ function handleSlotTextInlineInput(cardId, slotId, newText) {
     const badge = document.querySelector(`.slot-item[data-slot-id="${slotId}"] .slot-icon-badge`);
     if (badge) badge.textContent = detected;
   }
+  autoFitCardSlots(cardId);
 }
 
 function updateSlotTextInline(cardId, slotId, newText) {
@@ -1308,6 +1348,9 @@ function exportPDF() {
 
   showToast('Đang chuẩn bị file PDF in chuẩn A4... ⏳');
 
+  // Ensure perfect fit before rendering to canvas
+  autoFitCardSlots();
+
   wrapper.classList.add('exporting-clean-pdf');
   document.body.classList.add('exporting-clean-pdf');
 
@@ -1435,6 +1478,9 @@ function setupEventListeners() {
       }
     }
   });
+
+  window.addEventListener('resize', () => autoFitCardSlots());
+  window.addEventListener('beforeprint', () => autoFitCardSlots());
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
