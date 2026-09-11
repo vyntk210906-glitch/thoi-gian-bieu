@@ -13,21 +13,21 @@
      - Khối "Ghi Chú & Mục Tiêu" là tùy chọn bổ sung: người dùng có thể kích hoạt qua danh mục mẫu (Mẫu 6 Ngày Học + Ghi Chú) hoặc tự thêm mới khi xóa bớt 1 ngày.
      - Giới hạn khống chế nghiêm ngặt: **TỐI ĐA 7 KHỐI** (`MAX_CARDS = 7`) trên bảng in để đảm bảo bố cục luôn thoáng đãng, không bị chật chội. Nút chức năng hiển thị trực tiếp số lượng khối hiện có: `➕ Thêm Khối (X/7)`.
   2. **Bố cục Hiển thị Cân đối & Thuật toán Xếp Lưới Thông minh (`computeCardLayout`)**:
-     - **Nguyên nhân lỗi trước đây**: Khi người dùng thu nhỏ Thứ 2 thành 1 tầng (`spanRows: 1`) và mở rộng Thứ 7 thành 2 tầng (`spanRows: 2`), CSS Grid duyệt DOM theo thứ tự (T2, T3, T4, T5, T6, T7, CN). Các khối 1 tầng T2..T5 lấp đầy Hàng 1 (Cols 1..4), dẫn đến khi duyệt đến T7 (nằm ở Hàng 2) với `grid-row: span 2`, trình duyệt bắt buộc phải sinh ra **Hàng thứ 3 ngầm định (implicit Row 3)**. Hàng 3 này làm vỡ khung cố định của tờ A4, đẩy đáy khối trồi ra ngoài trang in và để lại khoảng trắng lớn ở góc dưới bên phải (Cột 4 Hàng 2).
+     - **Nguyên nhân lỗi trước đây**:
+       - Khi người dùng thu nhỏ Thứ 2 thành 1 tầng (`spanRows: 1`) và mở rộng Thứ 7 thành 2 tầng (`spanRows: 2`), CSS Grid duyệt DOM theo thứ tự (T2..T5 lấp đầy Hàng 1, T7 bị đẩy sang Hàng 2 sinh ra Hàng thứ 3 ngầm định).
+       - Đồng thời, khối Thứ 2 chứa tới 10 hoạt động từ mẫu cũ. Trong CSS Grid, `1fr` có giá trị ngầm định là `minmax(auto, 1fr)`. Do đó, 10 hoạt động của Thứ 2 làm Hàng 1 phình to lên ~600px, kéo cả bảng `.timetable-sheet` dãn dài ngoằng thành hình chữ nhật đứng (> 1300px), đẩy Hàng 2 đâm thủng đáy tờ A4, trong khi Thứ 7 (2 tầng) lại bị rỗng hoác 70%.
      - **Giải pháp xử lý triệt để**:
-       - Xây dựng thuật toán giải vị trí động `computeCardLayout(cards, layoutMode)` trong `js/app.js`:
-         - Nhận diện các khối 2 tầng (chiều cao trọn cột) và các khối 1 tầng (tiêu chuẩn).
-         - Phân bổ cột độc quyền cho các khối 2 tầng dựa trên chỉ số vị trí tương đối trong danh sách ngày (ví dụ: Thứ 2 ở đầu -> Cột 1; Thứ 7 ở cuối -> Cột 4; Ghi chú -> Cột 5).
-         - Tự động ghép cặp các khối 1 tầng vào các cột còn trống: nửa đầu vào Hàng 1 (nửa trên), nửa sau vào Hàng 2 (nửa dưới) theo đúng quy luật đọc từ trái sang phải.
-         - Gán tọa độ tường minh `gridColumn: col / span 1` và `gridRow: row / span spanRows` cho từng khối DOM, tuyệt đối không để CSS Grid tự đoán vị trí.
-         - Thiết lập bề rộng cột động: cột 2 tầng nhận `1.15fr` (rộng rãi hơn do nhiều hoạt động), các cột 1 tầng nhận `1fr`.
-       - **Bố cục 2 tầng - 4 Cột (`grid-photo`)**:
-         - Khi Thứ 2 là 2 tầng: Cột 1 là Thứ 2; Cột 2..4 là T3..CN xếp đôi (trên: T3, T4, T5; dưới: T6, T7, CN).
-         - Khi Thứ 7 là 2 tầng: Cột 4 là Thứ 7; Cột 1..3 là T2..CN xếp đôi (trên: T2, T3, T4; dưới: T5, T6, CN).
-         - Hoàn toàn vừa khít lưới 4×2, chính xác 2 hàng, 0 hàng thừa, 0 ô trống.
-       - **Bố cục 7 Cột dàn đều (`grid-7cols`)**: 7 cột hiển thị song song từ Thứ 2 đến Chủ Nhật.
-       - **Bố cục 5 Cột (`grid-photo5`)**: Dành riêng cho mẫu có khối Ghi chú (Thứ 2 và Ghi Chú cao 2 bên, các ngày ở giữa).
-       - Bất kể người dùng kéo thả đổi thứ tự hay bật/tắt 1T/2T ở bất kỳ ngày nào, bố cục luôn tự động căn chỉnh hoàn mỹ và vừa khít đúng 1 trang A4 Landscape duy nhất.
+       - **Khóa cứng tỉ lệ A4 Landscape chuẩn**: `.timetable-sheet` được gán kích thước cố định `width: 1080px; height: 764px; max-height: 764px; min-height: 764px; aspect-ratio: 297 / 210; overflow: hidden;`.
+       - **Khóa cứng tỉ lệ phân bổ hàng 50% / 50%**: Lưới sử dụng `grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);` và `overflow: hidden;`. Ngăn chặn hoàn toàn việc một khối có nhiều hoạt động làm phình to một hàng hay làm lệch hàng còn lại.
+       - **Tự động co giãn nội dung thông minh (`slots-dense` / `slots-spacious`)**:
+         - Khối 1 tầng có từ 7 hoạt động trở lên (như Thứ 2 chứa 10 hoạt động) tự động nhận class `slots-dense`: tự động thu nhỏ padding (`1px 2px`), cỡ chữ (`0.72rem - 0.74rem`), gap (`1.5px`), giúp trọn vẹn 10 hoạt động nằm gọn gàng bên trong chiều cao 1 tầng mà không hề tràn ra ngoài hay đội hàng.
+         - Khối 2 tầng có ít hoạt động (như Thứ 7 có 4 hoạt động) tự động nhận class `slots-spacious`: giãn đều khoảng cách (`gap: 8px; padding: 4px 6px;`) để bố cục luôn cân đối, thanh thoát.
+         - Tích hợp thanh cuộn siêu mỏng 3px tự nhiên cho chế độ xem web, tuyệt đối không in ra bản PDF.
+       - **Thuật toán giải vị trí động `computeCardLayout(cards, layoutMode)`**:
+         - Phân bổ cột độc quyền cho các khối 2 tầng dựa trên chỉ số vị trí tương đối trong tuần.
+         - Ghép cặp các khối 1 tầng vào các cột còn lại: Hàng trên (T2, T3, T4), Hàng dưới (T5, T6, CN), Cột 4 (T7 cao 2 tầng).
+         - Cả 2 hàng luôn cao bằng nhau chằn chặn 320px, khoảng đệm đáy đạt chuẩn 12px-16px, không chạm viền.
+       - **Cache-busting**: Thêm query string `?v=5.0` vào các file CSS/JS trong `index.html` để đảm bảo trình duyệt người dùng luôn tải phiên bản mới nhất, không bị lưu cache cũ.
   3. **Tối ưu Kích thước Chữ (Font Size) Khổ in A4**:
      - Tăng kích thước font chữ toàn diện để bé và phụ huynh dễ dàng quan sát khi dán tường hoặc để bàn:
        - Tiêu đề ngày (`.card-header-pill`): tăng lên `1.02rem` (màn hình) và `0.95rem` (bản in), chiều cao viên thuốc `32px`.
