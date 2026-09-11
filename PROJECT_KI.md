@@ -29,7 +29,7 @@
        ```
      - **Tương thích ngược tuyệt đối (Backward Compatibility Migration)**: Tự động phát hiện và chuyển đổi dữ liệu đơn từ `thoi_gian_bieu_state_v4` sang hồ sơ bé đầu tiên, đảm bảo người dùng cũ không bao giờ bị mất dữ liệu.
      - **Thanh chọn bé trên Toolbar**: Cho phép chuyển đổi tức thì giữa các bé; tiêu đề banner, linh vật đại diện (`👦`, `👧`, `👫`), tông màu và bảng in lập tức đồng bộ theo bé được chọn.
-     - **Tạo Bé Mới (`➕ Bé Mới`)**: Cho phép nhập tên bé, chọn linh vật riêng, tông màu cute, bố cục in, và tùy chọn lịch khởi tạo (sao chép lịch từ bé hiện tại, nạp mẫu chuẩn 7 ngày, mẫu 6 ngày học + ghi chú, hoặc bảng trống).
+     - **Tạo Bé Mới (`➕ Bé Mới`)**: Cho phép nhập tên bé, chọn linh vật riêng, tông màu cute, bố cục in, và tùy chọn lịch khởi tạo (sao chép lịch từ bé hiện tại, nạp mẫu chuẩn 7 ngày, mẫu 6 ngày học + ghi chú, hoặc bảng trống). DOM của modal (`#modal-profile`) được chuẩn hóa ở cấp gốc `<body>` độc lập (tránh lồng ghép thẻ với modal khối), mở và hiển thị mượt mà tức thì.
      - **Nhân Bản / Sao Chép Lịch Trình (`📋 Chép Lịch`)**: Hỗ trợ 2 chế độ:
        - Tạo ngay bé mới với toàn bộ thời gian biểu của bé nguồn (cực kỳ hữu ích cho gia đình có bé thứ 2, thứ 3).
        - Ghi đè lịch trình sang một bé đã có trong danh sách.
@@ -79,7 +79,7 @@
              - Đo đạc chính xác theo thời gian thực: Nếu `scrollHeight > clientHeight + 0.5px`, hàm tự động hạ biến tỉ lệ `--auto-scale` (từ `1.0` xuống `0.97`, `0.94`...) cho đến khi $scrollHeight \le clientHeight$.
              - Tự động kích hoạt khi người dùng gõ sửa chữ trực tiếp (`handleSlotTextInlineInput`), khi thêm/xóa/đổi kích thước ô, khi thay đổi kích thước cửa sổ (`resize`), và trước khi in hoặc xuất file PDF.
              - Đảm bảo 100% nội dung luôn nhìn thấy trọn vẹn, không bị scroll, không bị che khuất và luôn nằm gọn trong 1 trang A4 Landscape duy nhất.
-       - **Cache-busting**: Thêm query string `?v=5.2` vào các file CSS/JS trong `index.html` để đảm bảo trình duyệt người dùng luôn tải phiên bản mới nhất, không bị lưu cache cũ.
+       - **Cache-busting**: Thêm query string `?v=5.3` vào các file CSS/JS trong `index.html` để đảm bảo trình duyệt người dùng luôn tải phiên bản mới nhất, không bị lưu cache cũ.
   5. **Tối ưu Kích thước Chữ (Font Size) Khổ in A4**:
      - Tăng kích thước font chữ toàn diện để bé và phụ huynh dễ dàng quan sát khi dán tường hoặc để bàn:
        - Tiêu đề ngày (`.card-header-pill`): tăng lên `1.02rem` (màn hình) và `0.95rem` (bản in), chiều cao viên thuốc `32px`.
