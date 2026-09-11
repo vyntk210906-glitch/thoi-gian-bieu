@@ -504,24 +504,7 @@ function renderGrid() {
     cardEl.addEventListener('dragleave', (e) => handleCardDragLeave(e, cardEl));
     cardEl.addEventListener('drop', (e) => handleCardDrop(e, card.id, cardEl));
 
-    // Card Action Menu (Top right on hover, strictly hidden in print/export)
-    const actionsEl = document.createElement('div');
-    actionsEl.className = 'card-actions no-print';
-    actionsEl.innerHTML = `
-      <button class="card-action-btn resize-btn" title="Đổi chiều cao: 1 tầng / 2 tầng" onclick="toggleCardRows('${card.id}')">
-        ${card.spanRows === 2 ? '↕ 1T' : '↕ 2T'}
-      </button>
-      <button class="card-action-btn resize-btn" title="Đổi chiều rộng: 1 cột / 2 cột" onclick="toggleCardCols('${card.id}')">
-        ${card.spanCols === 2 ? '↔ 1C' : '↔ 2C'}
-      </button>
-      <button class="card-action-btn" title="Tự động sắp xếp hoạt động theo thứ tự Sáng - Chiều - Tối" onclick="sortAndRenderCard('${card.id}')">⏰</button>
-      <button class="card-action-btn" title="Sao chép toàn bộ lịch ngày này" onclick="openDuplicateCardModal('${card.id}')">📋</button>
-      <button class="card-action-btn" title="Đổi màu & Tên" onclick="openEditCardModal('${card.id}')">🎨</button>
-      <button class="card-action-btn btn-del" title="Xóa khối này" onclick="deleteCard('${card.id}')">🗑️</button>
-    `;
-    cardEl.appendChild(actionsEl);
-
-    // Header Pill (Draggable to move card)
+    // Header Pill (Draggable to move card with modern integrated tools & floating menu)
     const pillEl = document.createElement('div');
     pillEl.className = 'card-header-pill';
     pillEl.style.backgroundColor = card.color || '#1d72b8';
@@ -532,11 +515,49 @@ function renderGrid() {
     pillEl.addEventListener('dragend', (e) => handleCardDragEnd(e, cardEl));
 
     pillEl.innerHTML = `
-      <span class="card-drag-handle no-print" title="Kéo để di chuyển vị trí">⠿</span>
+      <span class="card-drag-handle no-print" title="Kéo để di chuyển vị trí ngày">⠿</span>
       <span class="card-title-text" contenteditable="true" spellcheck="false" title="Nhấp đúp để đổi tên trực tiếp"
         onblur="updateCardTitleInline('${card.id}', this.innerText)"
         onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${card.title}</span>
-      <button type="button" class="card-pill-size-badge no-print" onclick="event.stopPropagation(); toggleCardRows('${card.id}')" title="Bấm để đổi 1 tầng / 2 tầng">${card.spanRows === 2 ? '2T' : '1T'}</button>
+      <div class="card-header-tools no-print">
+        <button type="button" class="card-pill-size-badge" onclick="event.stopPropagation(); toggleCardRows('${card.id}')" title="Bấm để đổi 1 tầng / 2 tầng (Cao trọn cột)">
+          ${card.spanRows === 2 ? '↕ 2T' : '↕ 1T'}
+        </button>
+        ${card.spanCols === 2 ? `
+        <button type="button" class="card-pill-size-badge card-pill-col-badge" onclick="event.stopPropagation(); toggleCardCols('${card.id}')" title="Đang mở rộng 2 cột (Bấm để thu về 1 cột)">
+          ↔ 2C
+        </button>` : ''}
+        <button type="button" class="card-menu-trigger" onclick="event.stopPropagation(); toggleCardMenu('${card.id}')" title="Tùy chọn khối (Sắp xếp, Sao chép, Đổi màu, Xóa...)">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><circle cx="2" cy="8" r="1.7"/><circle cx="8" cy="8" r="1.7"/><circle cx="14" cy="8" r="1.7"/></svg>
+        </button>
+        <div class="card-dropdown-menu" id="card-menu-${card.id}" role="menu">
+          <button type="button" class="card-dropdown-item" onclick="event.stopPropagation(); closeAllCardMenus(); toggleCardRows('${card.id}')">
+            <span class="dropdown-icon">↕</span>
+            <span class="dropdown-label">${card.spanRows === 2 ? 'Thu về 1 tầng (Tiêu chuẩn)' : 'Mở rộng 2 tầng (Cao trọn)'}</span>
+          </button>
+          <button type="button" class="card-dropdown-item" onclick="event.stopPropagation(); closeAllCardMenus(); toggleCardCols('${card.id}')">
+            <span class="dropdown-icon">↔</span>
+            <span class="dropdown-label">${card.spanCols === 2 ? 'Thu về 1 cột (Gọn)' : 'Mở rộng 2 cột (Rộng)'}</span>
+          </button>
+          <button type="button" class="card-dropdown-item" onclick="event.stopPropagation(); closeAllCardMenus(); sortAndRenderCard('${card.id}')">
+            <span class="dropdown-icon">⏰</span>
+            <span class="dropdown-label">Sắp xếp theo giờ (Sáng ➔ Tối)</span>
+          </button>
+          <button type="button" class="card-dropdown-item" onclick="event.stopPropagation(); closeAllCardMenus(); openDuplicateCardModal('${card.id}')">
+            <span class="dropdown-icon">📋</span>
+            <span class="dropdown-label">Sao chép lịch ngày này...</span>
+          </button>
+          <button type="button" class="card-dropdown-item" onclick="event.stopPropagation(); closeAllCardMenus(); openEditCardModal('${card.id}')">
+            <span class="dropdown-icon">🎨</span>
+            <span class="dropdown-label">Đổi màu & Tên ngày...</span>
+          </button>
+          <div class="card-dropdown-divider"></div>
+          <button type="button" class="card-dropdown-item dropdown-danger" onclick="event.stopPropagation(); closeAllCardMenus(); deleteCard('${card.id}')">
+            <span class="dropdown-icon">🗑️</span>
+            <span class="dropdown-label">Xóa khối ngày này</span>
+          </button>
+        </div>
+      </div>
     `;
     cardEl.appendChild(pillEl);
 
@@ -596,11 +617,19 @@ function renderGrid() {
             onblur="updateSlotTextInline('${card.id}', '${slot.id}', this.innerText)"
             onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${slot.text}</span>
         </div>
-        <div class="slot-controls no-print">
-          <button class="slot-ctrl-btn" title="Lên trên" onclick="event.stopPropagation(); moveSlot('${card.id}', ${slotIndex}, -1)">▲</button>
-          <button class="slot-ctrl-btn" title="Xuống dưới" onclick="event.stopPropagation(); moveSlot('${card.id}', ${slotIndex}, 1)">▼</button>
-          <button class="slot-ctrl-btn" title="Sửa & Áp dụng nhiều ngày" onclick="event.stopPropagation(); openEditSlotModal('${card.id}', '${slot.id}')">✏️</button>
-          <button class="slot-ctrl-btn btn-del" title="Xóa hoạt động này" onclick="event.stopPropagation(); deleteSlot('${card.id}', '${slot.id}')">✕</button>
+        <div class="slot-actions-toolbar slot-controls no-print">
+          <button type="button" class="slot-act-btn" title="Chỉnh sửa chi tiết & áp dụng nhiều ngày" onclick="event.stopPropagation(); openEditSlotModal('${card.id}', '${slot.id}')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button type="button" class="slot-act-btn" title="Chuyển lên trên" onclick="event.stopPropagation(); moveSlot('${card.id}', ${slotIndex}, -1)">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+          </button>
+          <button type="button" class="slot-act-btn" title="Chuyển xuống dưới" onclick="event.stopPropagation(); moveSlot('${card.id}', ${slotIndex}, 1)">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <button type="button" class="slot-act-btn slot-act-delete" title="Xóa hoạt động này" onclick="event.stopPropagation(); deleteSlot('${card.id}', '${slot.id}')">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
       `;
 
@@ -825,8 +854,25 @@ function handleSlotDrop(e, targetCardId, targetSlotId, slotEl) {
 }
 
 // -------------------------------------------------------------
-// Resize & Move Block Controls
+// Resize & Block Actions Menu Controls (Modern Dropdown)
 // -------------------------------------------------------------
+function toggleCardMenu(cardId) {
+  const menu = document.getElementById(`card-menu-${cardId}`);
+  if (!menu) return;
+  const isCurrentlyActive = menu.classList.contains('active');
+  closeAllCardMenus();
+  if (!isCurrentlyActive) {
+    menu.classList.add('active');
+    const trigger = menu.previousElementSibling;
+    if (trigger) trigger.classList.add('active');
+  }
+}
+
+function closeAllCardMenus() {
+  document.querySelectorAll('.card-dropdown-menu.active').forEach(m => m.classList.remove('active'));
+  document.querySelectorAll('.card-menu-trigger.active').forEach(t => t.classList.remove('active'));
+}
+
 function toggleCardRows(cardId) {
   const card = state.cards.find(c => c.id === cardId);
   if (!card) return;
@@ -2361,10 +2407,18 @@ function setupEventListeners() {
     });
   });
 
+  // Close card action menus when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.card-header-tools')) {
+      closeAllCardMenus();
+    }
+  });
+
   window.addEventListener('keydown', (e) => {
-    // Escape closes modals
+    // Escape closes modals and dropdown menus
     if (e.key === 'Escape') {
       document.querySelectorAll('.modal-backdrop.active').forEach(m => m.classList.remove('active'));
+      closeAllCardMenus();
     }
 
     // Ctrl+Z (Undo) and Ctrl+Y / Ctrl+Shift+Z (Redo)

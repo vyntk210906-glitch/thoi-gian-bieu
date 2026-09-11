@@ -113,6 +113,30 @@
        - **Tự động gán và khử trùng lặp nhãn phân cách buổi**: Hệ thống tự động phân loại các mốc giờ (< 12h00: Sáng, 12h00 - 16h59: Chiều, $\ge$ 17h00: Tối). Nhãn `Chiều:` và `Tối:` chỉ được hiển thị ở hoạt động đầu tiên của buổi đó và triệt tiêu trùng lặp ở các hoạt động tiếp theo.
      - **Tự động sắp xếp lại tức thì khi sửa giờ trực tiếp (Inline Time Re-sorting)**: Khi phụ huynh nhấp đúp/sửa giờ trực tiếp trên thẻ lịch, hệ thống ngay lập tức định vị lại hoạt động đúng vị trí thời gian của nó trong ngày mà không cần tải lại trang.
      - **Nút sắp xếp thủ công trên thẻ (`⏰ Sắp xếp theo giờ`)**: Nút chức năng trong menu hover giúp phụ huynh chủ động kích hoạt sắp xếp bất kỳ lúc nào.
+  14. **Hệ Thống Menu Khối & Thanh Công Cụ Hoạt Động Hiện Đại (Modern Floating Dropdown & Slot Actions Toolbar - Áp dụng triệt để Skill UI/UX Pro Max & shadcn/ui)**:
+     - **Xóa bỏ hoàn toàn cụm nút lơ lửng ngoài khối cũ**: Loại bỏ 6 nút tròn 22px chen chúc chồi ra ngoài góc trên bên phải (`top: -7px; right: -5px;`) gây va chạm cột, bấm trượt và lộn xộn giao diện.
+     - **Tích hợp cụm công cụ chuẩn ngay trên Header Pill (`.card-header-tools`)**:
+       - Huy hiệu đổi tầng nhanh (`↕ 1T` / `↕ 2T`): Nút pill kính mờ bấm 1 chạm đổi chiều cao khối tức thì.
+       - Nút mở rộng 2 cột (`↔ 2C`): Tự động hiển thị khi khối được mở rộng sang 2 cột.
+       - Nút tùy chọn `•••` (`.card-menu-trigger`): Nút tròn thanh lịch tích hợp ngay góc phải thanh tiêu đề ngày.
+     - **Menu Thả Xuống Nổi (Floating Dropdown Menu theo phong cách shadcn/ui)**:
+       - Thiết kế thẻ kính mờ cao cấp (`backdrop-filter: blur(14px)`), viền mỏng `#cbd5e1`, đổ bóng 3D mềm mại, hiệu ứng chuyển động mượt mà (`@keyframes menuFadeIn`).
+       - Danh mục chức năng hiển thị đầy đủ nhãn chữ tiếng Việt rõ ràng, dễ hiểu kèm icon trực quan:
+         - ↕ Thu về 1 tầng / Mở rộng 2 tầng
+         - ↔ Thu về 1 cột / Mở rộng 2 cột
+         - ⏰ Sắp xếp theo giờ (Sáng ➔ Tối)
+         - 📋 Sao chép lịch ngày này...
+         - 🎨 Đổi màu & Tên ngày...
+         - Đường phân cách (`.card-dropdown-divider`)
+         - 🗑️ Xóa khối ngày này (Màu đỏ `text-destructive`, hover nền đỏ nhạt mềm mại, tách biệt hoàn toàn theo quy chuẩn Apple HIG & Material Design).
+       - Tự động đóng khi click ra ngoài (`click outside`) hoặc khi nhấn phím `Escape`.
+     - **Thanh Công Cụ Hoạt Động Dạng Viên Thuốc (Floating Action Pill Toolbar - `.slot-actions-toolbar`)**:
+       - **Khắc phục triệt để lỗi che khuất chữ**:
+         - Trong chế độ dọc (`layout-vertical`): Thanh công cụ nằm ở góc trên bên phải của dòng thời gian, hoàn toàn **không che khuất dòng chữ nội dung** bên dưới.
+         - Trong chế độ ngang (`layout-horizontal`): Nội dung có khoảng đệm bảo vệ an toàn bên phải khi rê chuột (`padding-right: 78px;`) giúp chữ tự động co giãn/xuống dòng tự nhiên, không bao giờ bị đè.
+       - **Biểu tượng vector SVG sắc nét**: Thay thế các ký tự mũi tên thô sơ `▲`, `▼`, `✕` cũ bằng bộ icon vector chuẩn Lucide (Sửa `✏️`, Chuyển lên, Chuyển xuống, Xóa thùng rác đỏ).
+       - **Phản hồi vi tương tác mượt mà**: Dòng hoạt động có hiệu ứng nền sáng nhẹ và nâng nhẹ khi rê chuột (<100ms response time).
+     - **Bảo đảm 100% sạch sẽ khi in & xuất PDF**: Toàn bộ `.card-header-tools`, `.card-dropdown-menu`, `.slot-actions-toolbar` đều được ẩn tuyệt đối khi in hoặc xuất file PDF.
 
 ## 3. Kiến trúc & Cấu trúc Thư mục
 - `/home/video-system/thoi-gian-bieu/`
