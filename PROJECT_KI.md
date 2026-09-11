@@ -137,6 +137,34 @@
        - **Biểu tượng vector SVG sắc nét**: Thay thế các ký tự mũi tên thô sơ `▲`, `▼`, `✕` cũ bằng bộ icon vector chuẩn Lucide (Sửa `✏️`, Chuyển lên, Chuyển xuống, Xóa thùng rác đỏ).
        - **Phản hồi vi tương tác mượt mà**: Dòng hoạt động có hiệu ứng nền sáng nhẹ và nâng nhẹ khi rê chuột (<100ms response time).
      - **Bảo đảm 100% sạch sẽ khi in & xuất PDF**: Toàn bộ `.card-header-tools`, `.card-dropdown-menu`, `.slot-actions-toolbar` đều được ẩn tuyệt đối khi in hoặc xuất file PDF.
+  15. **Tái Thiết Kế Toàn Diện Hệ Thống Điều Hướng & Thanh Lệnh Trên Cùng (Unified Command Navigation & Canvas Toolbar System)**:
+     - **Giải quyết triệt để vấn đề phân mảnh giao diện cũ**:
+       - Giao diện cũ phân tán thành 3 dải ngang rời rạc, rối mắt, chiếm gần 200px chiều cao màn hình với nhiều nút/ô nhập trùng lặp (chọn bé và tên bé đặt cạnh nhau thiếu quy hoạch, nút sao lưu/khôi phục/tiêu đề dàn hàng ngang chiếm diện tích, viền xanh lá gắt ở khay hoạt động).
+     - **Tầng 1: Thanh Lệnh & Nhận Diện Bé Tinh Gọn (Top Command Header - `.app-header`)**:
+       - **Logo & Thương hiệu**: Chữ gradient sắc sảo `🎨 Thời Gian Biểu` (font Baloo 2, chữ bóng mờ tinh tế), phân cách bằng vạch dọc thanh lịch.
+       - **Viên nang Nhận Diện Bé (Child Identity Capsule - `.profile-capsule`)**: Hợp nhất toàn bộ thông tin bé vào một capsule bo tròn mềm mại (`border-radius: 9999px`):
+         - Avatar tròn với emoji linh vật bé (`👦`, `👧`, `👫`) cập nhật tự động theo linh vật đang chọn.
+         - Menu thả xuống chọn hồ sơ bé (`.select-profile-modern`) với mũi tên vector tùy biến.
+         - Ô sửa tên bé nhanh trực tiếp (`.input-student-name-modern`) có icon bút chì `✏️`, gõ tên là tự động đồng bộ tức thì lên tiêu đề bảng in và danh sách hồ sơ.
+         - Nhóm nút thao tác bé: Nút `➕ Bé Mới` viền xanh dương nhẹ, nút `📋 Chép Lịch`, nút xóa `🗑️` (chỉ xuất hiện khi có >1 bé).
+       - **Cụm Lịch Sử Nối Liền (Segmented History Group - `.segmented-history`)**: Cặp nút Hoàn tác `↩️` / Làm lại `↪️` gắn kết dạng thanh liền mạch, trạng thái disabled mờ tự nhiên khi hết stack.
+       - **Menu Thả Xuống Tiện Ích (Tools Dropdown Menu - `#btn-tools-menu` & `.tools-dropdown-menu`)**: Thu gọn 4 tính năng quản trị vào một menu nổi cao cấp (phong cách shadcn kính mờ `backdrop-filter: blur(14px)`):
+         - `✏️ Sửa Tiêu Đề Bảng In`: Tùy chỉnh tiêu đề chính, tên học sinh và phụ đề.
+         - `💾 Sao Lưu Dữ Liệu (.json)`: Tải file lưu lịch của tất cả các bé về máy.
+         - `📂 Khôi Phục Dữ Liệu`: Nhập lịch từ file sao lưu .json máy khác.
+         - Đường phân cách và nút `🔄 Đặt Lại Mẫu Chuẩn Cho Bé` (màu cảnh báo nguy hiểm mềm mại).
+       - **Nút Hành Động Xuất Bản Nổi Bật**: Nút `🖨️ In Lịch (A4)` gradient xanh dương và `📥 Xuất PDF` gradient ngọc lục bảo với bóng đổ nổi 3D, tạo độ tương phản cao và rõ ràng mục đích sử dụng.
+     - **Tầng 2: Thanh Tùy Chỉnh Khung Bảng (Canvas Toolbar - `.canvas-toolbar`)**:
+       - Đặt ngay trên bảng thời gian biểu, sắp xếp thẳng hàng gọn gàng với chiều cao chỉ 40px (tiết kiệm hơn 100px so với trước):
+         - `⭐ Mẫu:` Menu chọn mẫu tuần tiêu chuẩn.
+         - `🖼️ Bố cục:` Chọn bố cục in 2 tầng, 7 cột, 5 cột hoặc lưới tự do.
+         - `🌈 Màu sắc:` Chọn tông màu Cầu vồng, Da trời, Kẹo hồng, Vườn xanh.
+         - `🎭 Linh vật:` Chọn bé trai, bé gái, cả hai hoặc ẩn.
+         - `➕ Thêm Khối (7/7)`: Nút huy hiệu xanh lá hiển thị số lượng khối thực tế trên tối đa 7 khối.
+         - `⚡ Kéo Thả Nhanh ▲`: Nút thu gọn / mở rộng khay hoạt động nhanh.
+     - **Tầng 3: Khay Hoạt Động Nhanh Tinh Tế (Quick Activities Dock - `.quick-tray`)**:
+       - Loại bỏ hoàn toàn đường viền xanh lá chói mắt cũ. Thay bằng thiết kế thẻ capsule bo tròn (`border-radius: 9999px`), nền trắng viền xám sáng nhẹ `#e2e8f0`, đổ bóng vi tế, hiệu ứng rê chuột chuyển màu xanh lam êm dịu (`#0284c7`), con trỏ `grab` thân thiện.
+     - **Cách ly in & xuất PDF tuyệt đối**: Cả `.canvas-toolbar` và `.tools-dropdown-menu` đều được tích hợp vào danh sách chặn của `@media print` và `.exporting-clean-pdf`, bảo đảm bản in A4 và file PDF hoàn toàn sạch sẽ, sắc nét 100%.
 
 ## 3. Kiến trúc & Cấu trúc Thư mục
 - `/home/video-system/thoi-gian-bieu/`
