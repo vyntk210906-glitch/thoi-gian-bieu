@@ -633,50 +633,58 @@ body {
   gap: calc(var(--slot-row-gap, 2px) * var(--auto-scale, 1));
 }
 
+.card-slots.justify-fill {
+  justify-content: space-between;
+}
+
+.card-slots.justify-fill-few {
+  justify-content: space-around;
+}
+
 .card-slots::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
 }
 
-/* Density Tier 1: Spacious (Full height / 2-tier with few activities) */
+/* Density Tier 1: Spacious (MAX FONT CAP = 0.92rem - Không vượt quá mẫu to nhất hiện tại) */
 .time-card.density-spacious {
   --slot-font-size: 0.92rem;
-  --slot-line-height: 1.35;
-  --slot-pad-y: 3.5px;
-  --slot-pad-x: 5px;
-  --slot-gap: 5px;
-  --slot-row-gap: 5px;
+  --slot-line-height: 1.30;
+  --slot-pad-y: 2.5px;
+  --slot-pad-x: 4px;
+  --slot-gap: 4px;
+  --slot-row-gap: 4px;
   --slot-icon-size: 1.15rem;
-  --slot-divider-size: 0.92rem;
-  --slot-divider-mt: 6px;
-  --slot-divider-mb: 2px;
+  --slot-divider-size: 0.90rem;
+  --slot-divider-mt: 4px;
+  --slot-divider-mb: 1px;
 }
 
-/* Density Tier 2: Normal (Standard comfortable spacing) */
+/* Density Tier 2: Normal (Comfortable balanced spacing) */
 .time-card.density-normal {
-  --slot-font-size: 0.84rem;
-  --slot-line-height: 1.28;
+  --slot-font-size: 0.85rem;
+  --slot-line-height: 1.25;
   --slot-pad-y: 2px;
   --slot-pad-x: 3px;
-  --slot-gap: 4px;
-  --slot-row-gap: 2px;
-  --slot-icon-size: 1.05rem;
-  --slot-divider-size: 0.86rem;
-  --slot-divider-mt: 4px;
-  --slot-divider-mb: 2px;
+  --slot-gap: 3.5px;
+  --slot-row-gap: 3px;
+  --slot-icon-size: 1.06rem;
+  --slot-divider-size: 0.85rem;
+  --slot-divider-mt: 3px;
+  --slot-divider-mb: 1px;
 }
 
-/* Density Tier 3: Moderate (5-6 items in 1-tier, or 11-13 in 2-tier) */
+/* Density Tier 3: Moderate (5-6 items in 1-tier, or 10-12 in 2-tier) */
 .time-card.density-moderate {
-  --slot-font-size: 0.77rem;
+  --slot-font-size: 0.78rem;
   --slot-line-height: 1.20;
   --slot-pad-y: 1.5px;
-  --slot-pad-x: 2px;
-  --slot-gap: 3.5px;
-  --slot-row-gap: 1.5px;
-  --slot-icon-size: 0.95rem;
-  --slot-divider-size: 0.80rem;
-  --slot-divider-mt: 3px;
+  --slot-pad-x: 2.5px;
+  --slot-gap: 3px;
+  --slot-row-gap: 2px;
+  --slot-icon-size: 0.96rem;
+  --slot-divider-size: 0.78rem;
+  --slot-divider-mt: 2.5px;
   --slot-divider-mb: 1px;
 }
 
@@ -687,7 +695,7 @@ body {
   --slot-pad-y: 1px;
   --slot-pad-x: 2px;
   --slot-gap: 3px;
-  --slot-row-gap: 1.2px;
+  --slot-row-gap: 1.5px;
   --slot-icon-size: 0.86rem;
   --slot-divider-size: 0.74rem;
   --slot-divider-mt: 2px;
@@ -701,7 +709,7 @@ body {
   --slot-pad-y: 0.5px;
   --slot-pad-x: 1.5px;
   --slot-gap: 2.5px;
-  --slot-row-gap: 0.8px;
+  --slot-row-gap: 1px;
   --slot-icon-size: 0.78rem;
   --slot-divider-size: 0.70rem;
   --slot-divider-mt: 1.5px;
@@ -740,12 +748,62 @@ body {
   align-items: flex-start;
   gap: calc(var(--slot-gap, 4px) * var(--auto-scale, 1));
   font-size: calc(var(--slot-font-size, 0.84rem) * var(--auto-scale, 1));
-  line-height: calc(var(--slot-line-height, 1.28) * var(--auto-scale, 1));
+  line-height: calc(var(--slot-line-height, 1.25) * var(--auto-scale, 1));
   padding: calc(var(--slot-pad-y, 2px) * var(--auto-scale, 1)) calc(var(--slot-pad-x, 3px) * var(--auto-scale, 1));
   border-radius: 5px;
   position: relative;
   transition: background 0.12s;
   cursor: grab;
+}
+
+/* Layout Vertical: Mốc giờ ở trên, nội dung hoạt động ở dưới */
+.slot-item.layout-vertical .slot-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.slot-item.layout-vertical .slot-time {
+  display: inline-block;
+  font-weight: 850;
+  color: #0f172a;
+  font-size: calc(var(--slot-font-size, 0.84rem) * 0.94 * var(--auto-scale, 1));
+  line-height: 1.2;
+  margin-right: 0;
+}
+
+.slot-item.layout-vertical .slot-text {
+  display: block;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.22;
+  word-break: break-word;
+}
+
+/* Layout Horizontal: Inline Time & Text trên cùng 1 dòng */
+.slot-item.layout-horizontal .slot-details {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+.slot-item.layout-horizontal .slot-time {
+  display: inline;
+  font-weight: 850;
+  color: #0f172a;
+  font-size: calc(var(--slot-font-size, 0.84rem) * var(--auto-scale, 1));
+  margin-right: 4px;
+}
+
+.slot-item.layout-horizontal .slot-text {
+  display: inline;
+  font-weight: 700;
+  color: #1e293b;
+  font-size: calc(var(--slot-font-size, 0.84rem) * var(--auto-scale, 1));
+  line-height: inherit;
+  word-break: break-word;
 }
 
 .slot-item:active {
@@ -789,8 +847,6 @@ body {
 .slot-time {
   font-weight: 850;
   color: #0f172a;
-  margin-right: 4px;
-  font-size: inherit;
   outline: none;
   border-radius: 3px;
   padding: 0 2px;
@@ -810,9 +866,6 @@ body {
 .slot-text {
   color: #1e293b;
   font-weight: 700;
-  word-break: break-word;
-  font-size: inherit;
-  line-height: inherit;
   outline: none;
   border-radius: 3px;
   padding: 0 2px;
@@ -821,6 +874,12 @@ body {
 
 .slot-text[contenteditable="true"]:hover {
   background: #e2e8f0;
+}
+
+.slot-text[contenteditable="true"]:focus {
+  background: #e0f2fe;
+  color: #0369a1;
+  box-shadow: 0 0 0 1.5px #0284c7;
 }
 
 .slot-text[contenteditable="true"]:focus {

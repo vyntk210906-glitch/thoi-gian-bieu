@@ -435,22 +435,48 @@ function renderGrid() {
     const totalItems = slotsList.length + sectionCount;
     
     let densityClass = 'density-normal';
+    let slotLayoutMode = 'layout-vertical';
+
     if (isFullHeight) {
-      if (totalItems <= 7) densityClass = 'density-spacious';
-      else if (totalItems <= 10) densityClass = 'density-normal';
-      else if (totalItems <= 13) densityClass = 'density-moderate';
-      else densityClass = 'density-compact';
+      if (totalItems <= 6) {
+        densityClass = 'density-spacious';
+        slotLayoutMode = 'layout-vertical';
+      } else if (totalItems <= 9) {
+        densityClass = 'density-normal';
+        slotLayoutMode = 'layout-vertical';
+      } else if (totalItems <= 13) {
+        densityClass = 'density-moderate';
+        slotLayoutMode = 'layout-vertical';
+      } else {
+        densityClass = 'density-compact';
+        slotLayoutMode = 'layout-horizontal';
+      }
     } else {
-      if (totalItems <= 4) densityClass = 'density-normal';
-      else if (totalItems <= 6) densityClass = 'density-moderate';
-      else if (totalItems <= 8) densityClass = 'density-compact';
-      else if (totalItems <= 11) densityClass = 'density-dense';
-      else densityClass = 'density-ultra';
+      if (totalItems <= 4) {
+        densityClass = 'density-spacious';
+        slotLayoutMode = 'layout-vertical';
+      } else if (totalItems <= 5) {
+        densityClass = 'density-normal';
+        slotLayoutMode = 'layout-vertical';
+      } else if (totalItems <= 7) {
+        densityClass = 'density-moderate';
+        slotLayoutMode = 'layout-vertical';
+      } else if (totalItems <= 9) {
+        densityClass = 'density-compact';
+        slotLayoutMode = 'layout-horizontal';
+      } else if (totalItems <= 11) {
+        densityClass = 'density-dense';
+        slotLayoutMode = 'layout-horizontal';
+      } else {
+        densityClass = 'density-ultra';
+        slotLayoutMode = 'layout-horizontal';
+      }
     }
 
     const cardEl = document.createElement('div');
-    cardEl.className = `time-card card-span-${card.spanRows || 1} ${densityClass}`.trim();
+    cardEl.className = `time-card card-span-${card.spanRows || 1} ${densityClass} has-${slotLayoutMode}`.trim();
     cardEl.dataset.cardId = card.id;
+    cardEl.dataset.layoutMode = slotLayoutMode;
 
     // Apply color border matching the pill color
     cardEl.style.borderColor = card.color || '#1d72b8';
@@ -505,9 +531,10 @@ function renderGrid() {
     `;
     cardEl.appendChild(pillEl);
 
-    // Slot Items Container
+    // Slot Items Container with adaptive vertical space filling
     const slotsContainer = document.createElement('div');
-    slotsContainer.className = 'card-slots';
+    const fillClass = totalItems <= 2 ? 'justify-fill-few' : 'justify-fill';
+    slotsContainer.className = `card-slots ${fillClass}`;
     slotsContainer.dataset.cardId = card.id;
 
     card.slots.forEach((slot, slotIndex) => {
@@ -520,7 +547,7 @@ function renderGrid() {
       }
 
       const slotEl = document.createElement('div');
-      slotEl.className = 'slot-item';
+      slotEl.className = `slot-item ${slotLayoutMode}`;
       slotEl.dataset.slotId = slot.id;
       slotEl.dataset.cardId = card.id;
       slotEl.draggable = true;
@@ -583,9 +610,23 @@ function autoFitCardSlots(targetCardId = null) {
 
     slots.style.removeProperty('--auto-scale');
 
+    // Phase 1: If card is in layout-vertical and overflows, fallback to layout-horizontal
+    if (slots.scrollHeight > slots.clientHeight + 0.5) {
+      const vertItems = slots.querySelectorAll('.slot-item.layout-vertical');
+      if (vertItems.length > 0) {
+        vertItems.forEach(item => {
+          item.classList.remove('layout-vertical');
+          item.classList.add('layout-horizontal');
+        });
+        card.classList.remove('has-layout-vertical');
+        card.classList.add('has-layout-horizontal');
+        card.dataset.layoutMode = 'layout-horizontal';
+      }
+    }
+
+    // Phase 2: If still overflowing, scale down micro-adjustments smoothly
     let scale = 1.0;
     let iterations = 0;
-    // When scrollHeight exceeds clientHeight by even 0.5px, scale down smoothly
     while (slots.scrollHeight > slots.clientHeight + 0.5 && iterations < 15 && scale > 0.55) {
       scale -= 0.03;
       slots.style.setProperty('--auto-scale', scale.toFixed(2));
