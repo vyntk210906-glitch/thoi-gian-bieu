@@ -3,7 +3,7 @@
 
 :root {
   --font-main: 'Nunito', 'Quicksand', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --bg-color: #f1f5f9;
+  --bg-color: #f8fafc;
   --header-cloud-bg: linear-gradient(135deg, #38bdf8 0%, #2563eb 55%, #1d4ed8 100%);
 }
 
@@ -25,7 +25,7 @@ body {
 /* Top App Bar */
 .app-header {
   background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1.5px solid #e2e8f0;
   padding: 8px 20px;
   display: flex;
   justify-content: space-between;
@@ -171,17 +171,33 @@ body {
 }
 
 .timetable-sheet {
-  /* Dimensions for A4 Landscape (aspect ratio ~ 1.414) */
   width: 1080px;
   min-height: 720px;
   background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
-  border: 3px solid #38bdf8;
+  border: 3.5px solid #38bdf8;
   border-radius: 22px;
   padding: 10px 14px 12px;
   position: relative;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+}
+
+/* Themes for Students */
+.timetable-sheet.theme-candy {
+  background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%);
+  border-color: #fb7185;
+}
+.timetable-sheet.theme-candy::before {
+  border-color: #fda4af;
+}
+
+.timetable-sheet.theme-mint {
+  background: linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%);
+  border-color: #34d399;
+}
+.timetable-sheet.theme-mint::before {
+  border-color: #86efac;
 }
 
 /* Outer playful dash border inside sheet */
@@ -281,7 +297,7 @@ body {
 }
 
 .student-name-highlight {
-  color: #fef08a; /* Golden bright text */
+  color: #fef08a;
   text-shadow: 
     2px 2px 0px #854d0e,
     -1px -1px 0px #ca8a04,
@@ -422,7 +438,7 @@ body {
 .slot-item {
   display: flex;
   align-items: flex-start;
-  gap: 4px;
+  gap: 5px;
   font-size: 0.73rem;
   line-height: 1.25;
   padding: 1px 2px;
@@ -436,16 +452,26 @@ body {
   background: #f8fafc;
 }
 
-.slot-icon {
-  font-size: 0.85rem;
-  line-height: 1.2;
+/* Cute Icon Badge */
+.slot-icon-badge {
+  width: 21px;
+  height: 21px;
+  background: #f0fdf4;
+  border: 1px solid #dcfce7;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  line-height: 1;
   flex-shrink: 0;
   cursor: pointer;
   transition: transform 0.15s;
   margin-top: 0.5px;
 }
-.slot-icon:hover {
-  transform: scale(1.25);
+.slot-icon-badge:hover {
+  transform: scale(1.3);
+  background: #e0f2fe;
 }
 
 .slot-details {
@@ -527,6 +553,125 @@ body {
   color: #0284c7;
 }
 
+/* ========================================== */
+/* REUSABLE ACTIVITY BANK & MULTI-DAY STYLES  */
+/* ========================================== */
+
+.quick-bank-container {
+  background: #f0fdf4;
+  border: 1.5px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quick-bank-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #166534;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.quick-bank-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  max-height: 95px;
+  overflow-y: auto;
+}
+
+.bank-chip {
+  background: #ffffff;
+  border: 1px solid #86efac;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: #15803d;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.12s;
+  font-family: var(--font-main);
+}
+.bank-chip:hover {
+  background: #dcfce7;
+  border-color: #22c55e;
+  transform: translateY(-1px);
+}
+
+.multiday-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.multiday-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.multiday-header label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #334155;
+}
+
+.multiday-quick-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-xs {
+  font-size: 0.68rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-xs:hover {
+  background: #f1f5f9;
+  color: #0284c7;
+}
+
+.multiday-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+  gap: 6px;
+}
+
+.day-check-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #334155;
+  user-select: none;
+}
+
+.day-check-badge {
+  padding: 2px 6px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  flex: 1;
+}
+
 /* Modals */
 .modal-backdrop {
   position: fixed;
@@ -551,7 +696,7 @@ body {
   background: #ffffff;
   border-radius: 16px;
   width: 100%;
-  max-width: 520px;
+  max-width: 540px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -643,7 +788,7 @@ body {
   border-radius: 10px;
   padding: 8px;
   background: #f8fafc;
-  max-height: 170px;
+  max-height: 160px;
   overflow-y: auto;
 }
 
@@ -864,7 +1009,9 @@ body {
     font-size: 0.69rem !important;
   }
 
-  .slot-icon {
-    font-size: 0.8rem !important;
+  .slot-icon-badge {
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 0.74rem !important;
   }
 }

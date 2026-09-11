@@ -1,5 +1,6 @@
 /**
- * Timetable Generator App
+ * Timetable Generator App - Enhanced for Students
+ * Cute Design, Reusable Activities, Multi-day Apply & Online Ready
  */
 
 // Application State
@@ -10,8 +11,25 @@ let state = {
   mascotTheme: "boys", // 'boys', 'girls', 'mixed', 'none'
   layoutMode: "2rows", // '2rows', '7cols', '5cols', 'free'
   fontTheme: "nunito",
+  themePalette: "rainbow", // 'rainbow', 'sky', 'candy', 'mint'
   cards: []
 };
+
+// Common reusable activities bank for students
+const COMMON_ACTIVITIES_BANK = [
+  { time: "Sáng (07h30 - 11h50)", text: "Học chính tại trường", icon: "🏫", section: "Sáng:" },
+  { time: "11h50 - 13h30", text: "Ăn trưa & Nghỉ ngơi", icon: "🍱", section: "Trưa:" },
+  { time: "13h30 - 14h30", text: "Ngủ trưa", icon: "🛏️", section: "Chiều:" },
+  { time: "14h30 - 15h30", text: "Làm bài tập về nhà", icon: "📝", section: "Chiều:" },
+  { time: "15h30 - 16h30", text: "Tập gym / thể thao", icon: "🏋️", section: "Chiều:" },
+  { time: "16h30 - 16h45", text: "Tắm rửa, chuẩn bị nhanh", icon: "🚿", section: "Chiều:" },
+  { time: "16h45", text: "Di chuyển đi học", icon: "🚌", section: "Chiều:" },
+  { time: "17h00 - 19h00", text: "Học thêm tiếng Anh", icon: "🇬🇧", section: "Tối:" },
+  { time: "19h00 - 20h00", text: "Về nhà, ăn tối", icon: "🍽️", section: "Tối:" },
+  { time: "20h00 - 21h30", text: "Soạn sách vở, quần áo, hoàn thành BTVN", icon: "🎒", section: "Tối:" },
+  { time: "21h30 - 22h00", text: "Đọc sách/truyện và đi ngủ", icon: "📖", section: "Tối:" },
+  { time: "21h30 trở đi", text: "Nghỉ ngơi và đi ngủ", icon: "😴", section: "Tối:" }
+];
 
 // Currently editing pointers
 let editingSlotInfo = null; // { cardId, slotId }
@@ -36,6 +54,7 @@ const PRESET_COLORS = [
 function initApp() {
   loadSavedState();
   buildIconPickerGrid();
+  buildQuickActivityBank();
   renderApp();
   setupEventListeners();
 }
@@ -46,12 +65,12 @@ function loadSavedState() {
   if (saved) {
     try {
       state = JSON.parse(saved);
+      if (!state.themePalette) state.themePalette = 'rainbow';
       return;
     } catch (e) {
       console.warn("Lỗi đọc dữ liệu đã lưu, dùng mẫu mặc định:", e);
     }
   }
-  // Load original photo preset by default
   loadPreset('original');
 }
 
@@ -69,6 +88,7 @@ function loadPreset(name) {
   } else if (name === '5days') {
     state = JSON.parse(JSON.stringify(window.TimetablePresets.PRESET_SCHOOL_5DAYS));
   }
+  if (!state.themePalette) state.themePalette = 'rainbow';
   saveState();
   renderApp();
   showToast("Đã tải dữ liệu mẫu thành công!");
@@ -85,6 +105,15 @@ function renderApp() {
 
   const mascotSelect = document.getElementById('select-mascot');
   if (mascotSelect) mascotSelect.value = state.mascotTheme;
+
+  const themeSelect = document.getElementById('select-theme');
+  if (themeSelect) themeSelect.value = state.themePalette || 'rainbow';
+
+  // Apply theme class
+  const sheet = document.getElementById('timetable-sheet');
+  if (sheet) {
+    sheet.className = `timetable-sheet theme-${state.themePalette || 'rainbow'}`;
+  }
 
   // Render header
   renderHeader();
@@ -137,10 +166,11 @@ function renderGrid() {
     cardEl.className = 'time-card';
     cardEl.dataset.cardId = card.id;
 
-    // Card Action buttons (delete, edit color)
+    // Card Action buttons (delete, copy, edit color)
     const actionsEl = document.createElement('div');
     actionsEl.className = 'card-actions no-print';
     actionsEl.innerHTML = `
+      <button class="card-action-btn" title="Sao chép toàn bộ lịch ngày này" onclick="openDuplicateCardModal('${card.id}')">📋</button>
       <button class="card-action-btn" title="Đổi màu & Tên" onclick="openEditCardModal('${card.id}')">🎨</button>
       <button class="card-action-btn" title="Xóa cột này" onclick="deleteCard('${card.id}')">🗑️</button>
     `;
@@ -173,15 +203,15 @@ function renderGrid() {
       slotEl.dataset.slotId = slot.id;
 
       slotEl.innerHTML = `
-        <span class="slot-icon" title="Bấm để đổi icon" onclick="event.stopPropagation(); openQuickIconPicker('${card.id}', '${slot.id}')">${slot.icon || '🕒'}</span>
+        <span class="slot-icon-badge" title="Bấm để đổi icon" onclick="event.stopPropagation(); openQuickIconPicker('${card.id}', '${slot.id}')">${slot.icon || '🕒'}</span>
         <div class="slot-details" onclick="openEditSlotModal('${card.id}', '${slot.id}')">
-          <span class="slot-time">${slot.time ? slot.time + ':' : ''}</span>
+          ${slot.time ? `<span class="slot-time">${slot.time}:</span>` : ''}
           <span class="slot-text">${slot.text}</span>
         </div>
         <div class="slot-controls no-print">
           <button class="slot-ctrl-btn" title="Lên trên" onclick="event.stopPropagation(); moveSlot('${card.id}', ${slotIndex}, -1)">▲</button>
           <button class="slot-ctrl-btn" title="Xuống dưới" onclick="event.stopPropagation(); moveSlot('${card.id}', ${slotIndex}, 1)">▼</button>
-          <button class="slot-ctrl-btn" title="Sửa" onclick="event.stopPropagation(); openEditSlotModal('${card.id}', '${slot.id}')">✏️</button>
+          <button class="slot-ctrl-btn" title="Sửa & Áp dụng nhiều ngày" onclick="event.stopPropagation(); openEditSlotModal('${card.id}', '${slot.id}')">✏️</button>
           <button class="slot-ctrl-btn btn-del" title="Xóa" onclick="event.stopPropagation(); deleteSlot('${card.id}', '${slot.id}')">✕</button>
         </div>
       `;
@@ -203,6 +233,69 @@ function renderGrid() {
 }
 
 // ==========================================
+// REUSABLE ACTIVITY BANK & MULTI-DAY APPLY
+// ==========================================
+
+function buildQuickActivityBank() {
+  const container = document.getElementById('quick-bank-chips');
+  if (!container) return;
+  container.innerHTML = '';
+
+  COMMON_ACTIVITIES_BANK.forEach(item => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'bank-chip';
+    chip.innerHTML = `<span>${item.icon}</span> <span>${item.text}</span>`;
+    chip.title = `${item.time} - ${item.text}`;
+    chip.onclick = () => applyQuickActivity(item);
+    container.appendChild(chip);
+  });
+}
+
+function applyQuickActivity(item) {
+  document.getElementById('slot-time-input').value = item.time;
+  document.getElementById('slot-text-input').value = item.text;
+  document.getElementById('slot-section-select').value = item.section || '';
+  chooseIcon(item.icon);
+  showToast(`Đã áp dụng mẫu: ${item.text}`);
+}
+
+function renderMultiDayCheckboxes(targetCardId) {
+  const container = document.getElementById('multiday-checkboxes');
+  if (!container) return;
+  container.innerHTML = '';
+
+  state.cards.forEach(card => {
+    const label = document.createElement('label');
+    label.className = 'day-check-label';
+    const isChecked = card.id === targetCardId;
+    label.innerHTML = `
+      <input type="checkbox" name="apply_days" value="${card.id}" ${isChecked ? 'checked' : ''}>
+      <span class="day-check-badge" style="border-left: 4px solid ${card.color || '#2563eb'};">${card.title}</span>
+    `;
+    container.appendChild(label);
+  });
+}
+
+function setMultiDaySelection(mode) {
+  const checkboxes = document.querySelectorAll('input[name="apply_days"]');
+  if (mode === 'all') {
+    checkboxes.forEach(cb => cb.checked = true);
+  } else if (mode === 'current') {
+    checkboxes.forEach(cb => cb.checked = (cb.value === editingSlotInfo?.cardId));
+  } else if (mode === 'weekdays') {
+    checkboxes.forEach(cb => {
+      const card = state.cards.find(c => c.id === cb.value);
+      if (!card) return;
+      const title = card.title.toLowerCase();
+      // Match Thứ 2 - Thứ 6
+      const isWeekday = title.includes('hai') || title.includes('ba') || title.includes('tư') || title.includes('năm') || title.includes('sáu') || title.includes('2') || title.includes('3') || title.includes('4') || title.includes('5') || title.includes('6');
+      cb.checked = isWeekday;
+    });
+  }
+}
+
+// ==========================================
 // SLOT & CARD CRUD OPERATIONS
 // ==========================================
 
@@ -211,13 +304,14 @@ function openAddSlotModal(cardId) {
   isIconManuallyChosen = false;
   currentSelectedIcon = '🕒';
 
-  document.getElementById('modal-slot-title').textContent = 'Thêm Hoạt Động Mới';
+  document.getElementById('modal-slot-title').textContent = 'Thêm Hoạt Động Cho Bé';
   document.getElementById('slot-time-input').value = '';
   document.getElementById('slot-text-input').value = '';
   document.getElementById('slot-section-select').value = '';
   document.getElementById('current-icon-display').textContent = currentSelectedIcon;
-  document.getElementById('icon-hint-text').textContent = 'Tự động chọn theo từ khóa khi nhập nội dung';
+  document.getElementById('icon-hint-text').textContent = 'Tự động chọn icon cute theo từ khóa khi nhập';
 
+  renderMultiDayCheckboxes(cardId);
   openModal('modal-slot');
   setTimeout(() => document.getElementById('slot-text-input').focus(), 100);
 }
@@ -232,21 +326,20 @@ function openEditSlotModal(cardId, slotId) {
   isIconManuallyChosen = true; // Preserve user's icon
   currentSelectedIcon = slot.icon || '🕒';
 
-  document.getElementById('modal-slot-title').textContent = 'Sửa Hoạt Động';
+  document.getElementById('modal-slot-title').textContent = 'Sửa Hoạt Động & Nhân Bản Lịch';
   document.getElementById('slot-time-input').value = slot.time || '';
   document.getElementById('slot-text-input').value = slot.text || '';
   document.getElementById('slot-section-select').value = slot.section || '';
   document.getElementById('current-icon-display').textContent = currentSelectedIcon;
   document.getElementById('icon-hint-text').textContent = 'Icon hiện tại (bấm icon hoặc chọn bên dưới để đổi)';
 
+  renderMultiDayCheckboxes(cardId);
   openModal('modal-slot');
 }
 
 function saveSlot() {
   if (!editingSlotInfo) return;
   const { cardId, slotId } = editingSlotInfo;
-  const card = state.cards.find(c => c.id === cardId);
-  if (!card) return;
 
   const time = document.getElementById('slot-time-input').value.trim();
   const text = document.getElementById('slot-text-input').value.trim();
@@ -258,27 +351,58 @@ function saveSlot() {
     return;
   }
 
-  if (slotId) {
-    // Edit existing
-    const slot = card.slots.find(s => s.id === slotId);
-    if (slot) {
-      slot.time = time;
-      slot.text = text;
-      slot.section = section;
-      slot.icon = icon;
+  // Check which days are selected for multi-day apply
+  const selectedDayIds = Array.from(document.querySelectorAll('input[name="apply_days"]:checked')).map(cb => cb.value);
+  if (selectedDayIds.length === 0) {
+    selectedDayIds.push(cardId);
+  }
+
+  if (slotId && selectedDayIds.length === 1 && selectedDayIds[0] === cardId) {
+    // Standard single edit
+    const card = state.cards.find(c => c.id === cardId);
+    if (card) {
+      const slot = card.slots.find(s => s.id === slotId);
+      if (slot) {
+        slot.time = time;
+        slot.text = text;
+        slot.section = section;
+        slot.icon = icon;
+      }
     }
     showToast('Đã cập nhật hoạt động!');
   } else {
-    // Add new
-    const newSlot = {
-      id: 's_' + Date.now() + Math.random().toString(36).substr(2, 4),
-      time,
-      text,
-      section,
-      icon
-    };
-    card.slots.push(newSlot);
-    showToast('Đã thêm hoạt động mới!');
+    // Adding new or applying to multiple days!
+    selectedDayIds.forEach(targetId => {
+      const card = state.cards.find(c => c.id === targetId);
+      if (!card) return;
+
+      if (slotId && targetId === cardId) {
+        // Update current
+        const slot = card.slots.find(s => s.id === slotId);
+        if (slot) {
+          slot.time = time;
+          slot.text = text;
+          slot.section = section;
+          slot.icon = icon;
+        }
+      } else {
+        // Add duplicate slot to this day
+        const newSlot = {
+          id: 's_' + Date.now() + Math.random().toString(36).substr(2, 4),
+          time,
+          text,
+          section,
+          icon
+        };
+        card.slots.push(newSlot);
+      }
+    });
+
+    if (selectedDayIds.length > 1) {
+      showToast(`Đã nhân bản hoạt động sang ${selectedDayIds.length} ngày! 🎉`);
+    } else {
+      showToast('Đã thêm hoạt động mới!');
+    }
   }
 
   saveState();
@@ -309,9 +433,73 @@ function moveSlot(cardId, index, direction) {
   renderGrid();
 }
 
-// Quick fill time chips in modal
 function setQuickTime(val) {
   document.getElementById('slot-time-input').value = val;
+}
+
+// ==========================================
+// CARD DUPLICATION (SAO CHÉP TOÀN BỘ NGÀY)
+// ==========================================
+
+let duplicatingSourceCardId = null;
+
+function openDuplicateCardModal(cardId) {
+  duplicatingSourceCardId = cardId;
+  const srcCard = state.cards.find(c => c.id === cardId);
+  if (!srcCard) return;
+
+  document.getElementById('dup-source-name').textContent = srcCard.title;
+  const container = document.getElementById('dup-targets-list');
+  container.innerHTML = '';
+
+  state.cards.forEach(card => {
+    if (card.id === cardId) return; // Don't duplicate to self
+    const label = document.createElement('label');
+    label.className = 'day-check-label';
+    label.innerHTML = `
+      <input type="checkbox" name="dup_target" value="${card.id}">
+      <span class="day-check-badge" style="border-left: 4px solid ${card.color || '#2563eb'};">${card.title} (${card.slots.length} lịch)</span>
+    `;
+    container.appendChild(label);
+  });
+
+  openModal('modal-duplicate');
+}
+
+function executeDuplicateCard() {
+  if (!duplicatingSourceCardId) return;
+  const srcCard = state.cards.find(c => c.id === duplicatingSourceCardId);
+  if (!srcCard) return;
+
+  const targets = Array.from(document.querySelectorAll('input[name="dup_target"]:checked')).map(cb => cb.value);
+  if (targets.length === 0) {
+    alert('Vui lòng chọn ít nhất một ngày để sao chép!');
+    return;
+  }
+
+  const mode = document.querySelector('input[name="dup_mode"]:checked')?.value || 'append';
+
+  targets.forEach(targetId => {
+    const targetCard = state.cards.find(c => c.id === targetId);
+    if (!targetCard) return;
+
+    // Clone slots
+    const clonedSlots = srcCard.slots.map(s => ({
+      ...s,
+      id: 's_' + Date.now() + Math.random().toString(36).substr(2, 4)
+    }));
+
+    if (mode === 'replace') {
+      targetCard.slots = clonedSlots;
+    } else {
+      targetCard.slots.push(...clonedSlots);
+    }
+  });
+
+  saveState();
+  renderGrid();
+  closeModal('modal-duplicate');
+  showToast(`Đã sao chép lịch sang ${targets.length} ngày thành công! 📋`);
 }
 
 // Card Management (Add / Edit / Delete Card)
@@ -403,7 +591,6 @@ function saveHeaderEdit() {
 // Quick Icon Picker Popover
 function openQuickIconPicker(cardId, slotId) {
   openEditSlotModal(cardId, slotId);
-  // Focus into icon picker
   document.getElementById('icon-picker-box').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -412,7 +599,7 @@ function openQuickIconPicker(cardId, slotId) {
 // ==========================================
 
 function handleSlotTextInput(text) {
-  if (isIconManuallyChosen) return; // User already chose one manually
+  if (isIconManuallyChosen) return;
 
   const matched = window.TimetableIcons.matchIconForText(text);
   if (matched) {
@@ -421,7 +608,7 @@ function handleSlotTextInput(text) {
     badge.textContent = matched;
     badge.style.transform = 'scale(1.25)';
     setTimeout(() => badge.style.transform = 'scale(1)', 200);
-    document.getElementById('icon-hint-text').textContent = `Đã tự động chọn icon "${matched}" theo nội dung`;
+    document.getElementById('icon-hint-text').textContent = `Đã tự động chọn icon "${matched}" theo từ khóa`;
   }
 }
 
@@ -429,9 +616,8 @@ function chooseIcon(iconChar) {
   currentSelectedIcon = iconChar;
   isIconManuallyChosen = true;
   document.getElementById('current-icon-display').textContent = iconChar;
-  document.getElementById('icon-hint-text').textContent = `Đã chọn thủ công: ${iconChar}`;
+  document.getElementById('icon-hint-text').textContent = `Đã chọn: ${iconChar}`;
 
-  // Update active state in grid
   document.querySelectorAll('.icon-opt-btn').forEach(btn => {
     btn.classList.toggle('active', btn.textContent === iconChar);
   });
@@ -523,7 +709,7 @@ function exportPDF() {
     filename: filename,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
-      scale: 3, // High-res 300DPI
+      scale: 3,
       useCORS: true,
       logging: false,
       scrollY: 0,
@@ -580,6 +766,16 @@ function setupEventListeners() {
       state.mascotTheme = e.target.value;
       saveState();
       renderHeader();
+    });
+  }
+
+  // Theme palette switcher
+  const themeSelect = document.getElementById('select-theme');
+  if (themeSelect) {
+    themeSelect.addEventListener('change', (e) => {
+      state.themePalette = e.target.value;
+      saveState();
+      renderApp();
     });
   }
 

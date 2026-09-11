@@ -13,7 +13,7 @@
   <header class="app-header no-print">
     <div class="brand-title">
       <span>🎨</span>
-      <span>Tạo Thời Gian Biểu Đẹp Cho Bé</span>
+      <span>Thời Gian Biểu Học Sinh</span>
     </div>
 
     <div class="header-actions">
@@ -45,13 +45,23 @@
   <div class="toolbar no-print">
     <div class="toolbar-group">
       <label for="input-student-name">Tên bé:</label>
-      <input type="text" id="input-student-name" class="input-field" placeholder="Nhập tên học sinh..." style="width: 170px;">
+      <input type="text" id="input-student-name" class="input-field" placeholder="Nhập tên học sinh..." style="width: 160px;">
+    </div>
+
+    <div class="toolbar-group">
+      <label for="select-theme">Tông màu cute:</label>
+      <select id="select-theme" class="input-field">
+        <option value="rainbow">🌈 Cầu vồng tươi vui</option>
+        <option value="sky">🌊 Xanh da trời mây biếc</option>
+        <option value="candy">🌸 Kẹo hồng ngọt ngào</option>
+        <option value="mint">🌿 Vườn xanh tươi mát</option>
+      </select>
     </div>
 
     <div class="toolbar-group">
       <label for="select-layout">Bố cục in:</label>
       <select id="select-layout" class="input-field">
-        <option value="2rows">2 Hàng (5 cột x 2 hàng - Giống ảnh mẫu 100%)</option>
+        <option value="2rows">2 Hàng (5 cột x 2 hàng - Chuẩn ảnh mẫu 100%)</option>
         <option value="7cols">7 Cột dàn đều (Thứ 2 đến Chủ Nhật)</option>
         <option value="5cols">5 Cột dàn đều (Thứ 2 đến Thứ 6)</option>
         <option value="free">Lưới tự do (Tự căn chỉnh)</option>
@@ -59,21 +69,21 @@
     </div>
 
     <div class="toolbar-group">
-      <label for="select-mascot">Linh vật hoạt hình:</label>
+      <label for="select-mascot">Linh vật:</label>
       <select id="select-mascot" class="input-field">
-        <option value="boys">Bé trai (Giống ảnh gốc)</option>
+        <option value="boys">Bé trai (Chuẩn mẫu)</option>
         <option value="girls">Bé gái đáng yêu</option>
-        <option value="mixed">Cả bé trai & bé gái</option>
-        <option value="none">Không hiển thị linh vật</option>
+        <option value="mixed">Bé trai & Bé gái</option>
+        <option value="none">Ẩn linh vật</option>
       </select>
     </div>
 
     <div class="toolbar-group" style="margin-left: auto;">
       <button class="btn btn-outline btn-sm" onclick="openHeaderEditModal()" title="Sửa tiêu đề chính">
-        ✏️ Đổi Tiêu Đề
+        ✏️ Tiêu Đề
       </button>
       <button class="btn btn-outline btn-sm" onclick="if(confirm('Khôi phục lại dữ liệu mẫu ban đầu?')) { localStorage.removeItem('thoi_gian_bieu_state'); loadSavedState(); renderApp(); }" title="Làm mới">
-        🔄 Khôi Phục Mẫu
+        🔄 Khôi Phục
       </button>
     </div>
   </div>
@@ -81,7 +91,7 @@
   <!-- Main Canvas Workspace -->
   <main class="workspace">
     <div class="timetable-sheet-wrapper">
-      <div class="timetable-sheet" id="timetable-sheet">
+      <div class="timetable-sheet theme-rainbow" id="timetable-sheet">
 
         <!-- Header Banner Section -->
         <div class="sheet-header">
@@ -121,19 +131,30 @@
     </div>
   </main>
 
-  <!-- Modal: Add / Edit Slot (Hoạt động) -->
+  <!-- Modal: Add / Edit Slot (Hoạt động) with Reusable Templates & Multi-day Apply -->
   <div class="modal-backdrop" id="modal-slot">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title" id="modal-slot-title">Thêm Hoạt Động</div>
+        <div class="modal-title" id="modal-slot-title">Thêm Hoạt Động Cho Bé</div>
         <button class="modal-close" onclick="closeModal('modal-slot')">✕</button>
       </div>
       <div class="modal-body">
+
+        <!-- Reusable Activities Quick Bank -->
+        <div class="quick-bank-container">
+          <div class="quick-bank-title">
+            <span>⚡ Mẫu hoạt động thường dùng (Bấm chọn nhanh để tái sử dụng):</span>
+          </div>
+          <div class="quick-bank-chips" id="quick-bank-chips">
+            <!-- Rendered by buildQuickActivityBank() -->
+          </div>
+        </div>
+
         <!-- Content input with live auto icon matcher -->
         <div class="form-group">
           <label for="slot-text-input">Nội dung hoạt động (*):</label>
           <input type="text" id="slot-text-input" class="input-field" placeholder="VD: Ngủ trưa, Tập gym, Học tiếng Anh, Ăn tối, Làm bài tập...">
-          <small id="icon-hint-text" style="color: #0284c7; font-size: 0.78rem; font-weight: 600;">Tự động chọn icon phù hợp khi nhập</small>
+          <small id="icon-hint-text" style="color: #0284c7; font-size: 0.78rem; font-weight: 600;">Tự động chọn icon cute theo từ khóa khi nhập</small>
         </div>
 
         <!-- Time Range Input -->
@@ -160,10 +181,26 @@
           <select id="slot-section-select" class="input-field">
             <option value="">-- Không có tiêu đề buổi --</option>
             <option value="Sáng:">Sáng:</option>
+            <option value="Trưa:">Trưa:</option>
             <option value="Chiều:">Chiều:</option>
             <option value="Tối:">Tối:</option>
             <option value="Chiều & Tối:">Chiều & Tối:</option>
           </select>
+        </div>
+
+        <!-- Reusable: Apply to Multiple Days -->
+        <div class="multiday-box">
+          <div class="multiday-header">
+            <label>📅 Áp dụng hoạt động này cho các ngày:</label>
+            <div class="multiday-quick-btns">
+              <button type="button" class="btn-xs" onclick="setMultiDaySelection('current')">Chỉ ngày này</button>
+              <button type="button" class="btn-xs" onclick="setMultiDaySelection('weekdays')">Thứ 2 - Thứ 6</button>
+              <button type="button" class="btn-xs" onclick="setMultiDaySelection('all')">Tất cả ngày</button>
+            </div>
+          </div>
+          <div class="multiday-grid" id="multiday-checkboxes">
+            <!-- Checkboxes injected by JS -->
+          </div>
         </div>
 
         <!-- Icon Selector Box -->
@@ -180,10 +217,49 @@
             <!-- Rendered by buildIconPickerGrid() -->
           </div>
         </div>
+
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('modal-slot')">Hủy</button>
-        <button type="button" class="btn btn-primary" onclick="saveSlot()">Lưu Hoạt Động</button>
+        <button type="button" class="btn btn-primary" onclick="saveSlot()">Lưu & Áp Dụng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Duplicate Day Schedule (Sao chép cả ngày) -->
+  <div class="modal-backdrop" id="modal-duplicate">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">📋 Sao Chép Lịch Sang Ngày Khác</div>
+        <button class="modal-close" onclick="closeModal('modal-duplicate')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: #334155;">
+          Bạn đang sao chép toàn bộ các hoạt động từ: <strong id="dup-source-name" style="color: #0284c7;">THỨ HAI</strong>
+        </p>
+
+        <div class="form-group">
+          <label>Chọn các ngày bạn muốn sao chép đến:</label>
+          <div class="multiday-grid" id="dup-targets-list" style="margin-top: 6px;">
+            <!-- Checkboxes injected by JS -->
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 8px;">
+          <label>Tùy chọn sao chép:</label>
+          <div style="display: flex; gap: 14px; font-size: 0.82rem; margin-top: 4px;">
+            <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+              <input type="radio" name="dup_mode" value="append" checked> Thêm nối tiếp vào ngày đích
+            </label>
+            <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+              <input type="radio" name="dup_mode" value="replace"> Ghi đè toàn bộ lịch ngày đích
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-duplicate')">Hủy</button>
+        <button type="button" class="btn btn-primary" onclick="executeDuplicateCard()">Sao Chép Ngay</button>
       </div>
     </div>
   </div>
