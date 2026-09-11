@@ -531,10 +531,9 @@ function renderGrid() {
     `;
     cardEl.appendChild(pillEl);
 
-    // Slot Items Container with adaptive vertical space filling
+    // Slot Items Container with standard natural spacing
     const slotsContainer = document.createElement('div');
-    const fillClass = totalItems <= 2 ? 'justify-fill-few' : 'justify-fill';
-    slotsContainer.className = `card-slots ${fillClass}`;
+    slotsContainer.className = 'card-slots';
     slotsContainer.dataset.cardId = card.id;
 
     card.slots.forEach((slot, slotIndex) => {
